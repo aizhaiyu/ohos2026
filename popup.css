@@ -1,0 +1,121 @@
+:root {
+  color-scheme: light;
+  font-family:
+    Inter, "HarmonyOS Sans SC", "PingFang SC", "Microsoft YaHei", Arial,
+    sans-serif;
+  color: #171717;
+  background: #f7f8fa;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  width: 380px;
+  margin: 0;
+  background: #f7f8fa;
+}
+
+.app {
+  padding: 16px;
+}
+
+header {
+  margin-bottom: 14px;
+}
+
+h1 {
+  margin: 0;
+  font-size: 18px;
+  line-height: 24px;
+  font-weight: 700;
+}
+
+p {
+  margin: 6px 0 0;
+  font-size: 13px;
+  line-height: 18px;
+  color: rgba(0, 0, 0, 0.62);
+}
+
+.summary {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.summary > div {
+  padding: 12px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 8px;
+  background: #fff;
+}
+
+.summary span {
+  display: block;
+  font-size: 24px;
+  line-height: 28px;
+  font-weight: 700;
+}
+
+.summary small {
+  display: block;
+  margin-top: 3px;
+  font-size: 12px;
+  line-height: 16px;
+  color: rgba(0, 0, 0, 0.58);
+}
+
+.actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+button {
+  min-height: 34px;
+  border: 0;
+  border-radius: 6px;
+  padding: 8px 10px;
+  background: #171717;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+button.secondary,
+button:disabled {
+  background: rgba(0, 0, 0, 0.08);
+  color: rgba(0, 0, 0, 0.55);
+  cursor: default;
+}
+
+.preview {
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 8px;
+  background: #fff;
+  overflow: hidden;
+}
+
+.preview-title {
+  padding: 10px 12px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+pre {
+  max-height: 230px;
+  margin: 0;
+  padding: 12px;
+  overflow: auto;
+  white-space: pre-wrap;
+  word-break: break-word;
+  font-size: 12px;
+  line-height: 18px;
+  color: rgba(0, 0, 0, 0.76);
+}

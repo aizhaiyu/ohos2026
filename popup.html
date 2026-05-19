@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>HarmonyOS 激励数据</title>
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body>
+    <main class="app">
+      <header>
+        <h1>HarmonyOS 激励数据</h1>
+        <p id="status">正在读取当前页面...</p>
+      </header>
+
+      <section class="summary" aria-label="数据概览">
+        <div>
+          <span id="rewardCount">0</span>
+          <small>上架应用数据</small>
+        </div>
+        <div>
+          <span id="hotCount">0</span>
+          <small>热门应用</small>
+        </div>
+      </section>
+
+      <section class="actions" aria-label="操作">
+        <button id="fetchAll" type="button">获取全部数据</button>
+        <button id="insertColumn" type="button">插入本月月活列</button>
+        <button id="fillMonthly" type="button">读取本月月活</button>
+        <button id="scanTables" type="button">重新扫描页面</button>
+      </section>
+
+      <section class="preview" aria-label="预览">
+        <div class="preview-title">最近捕获</div>
+        <pre id="preview">暂无数据。请先在目标页面完成登录，并等待表格加载。</pre>
+      </section>
+    </main>
+    <script src="popup.js"></script>
+  </body>
+</html>
