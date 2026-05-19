@@ -1,5 +1,7 @@
 if (location.pathname.includes(PAGE_URL_PATTERN)) {
   injectPageStyles();
+  loadPrivacyMode();
+  ensureStatsPanel();
   setPageBadge("已加载，等待页面表格");
   loadPreviousMauSnapshot();
   window.addEventListener("message", handleGwResponse);

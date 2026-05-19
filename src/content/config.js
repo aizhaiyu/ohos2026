@@ -4,8 +4,11 @@ var GW_RESPONSE_MESSAGE = "GW_RESPONSE";
 var REQUEST_REPLAY_MESSAGE = "REQUEST_REPLAY";
 var FETCH_ALL_REWARD_APPS_MESSAGE = "FETCH_ALL_REWARD_APPS";
 var DATA_UPDATED_EVENT = "ohos2026:data-updated";
+var PRIVACY_UPDATED_EVENT = "ohos2026:privacy-updated";
 var STORAGE_KEY = "ohos2026.latestCapture";
 var MAU_SNAPSHOT_KEY = "ohos2026.latestMauSnapshot";
+var PRIVACY_STORAGE_KEY = "ohos2026.privacyEnabled";
+var PRIVACY_MASK = "***";
 
 var REWARD_APP_ENDPOINT = "partnerActivityService/v1/developer/queryDeveloperRewardAppList";
 var HOT_APP_ENDPOINT = "partnerActivityService/v1/developer/queryDeveloperRewardHotAppList";
@@ -84,3 +87,4 @@ var filterState = {
   renderingFilteredRows: false
 };
 var pendingFetchAllRequests = new Map();
+var privacyModeEnabled = false;

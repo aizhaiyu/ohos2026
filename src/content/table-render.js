@@ -41,7 +41,7 @@ function createMonthlyBodyCell(referenceCell, app) {
   return td;
 }
 
-function createTableCell(referenceCell, value, className = "") {
+function createTableCell(referenceCell, value, className = "", originalValue) {
   const td = document.createElement("td");
   copyScopedAttributes(referenceCell, td);
   td.style.cssText = referenceCell?.getAttribute("style") || "";
@@ -54,6 +54,9 @@ function createTableCell(referenceCell, value, className = "") {
   const content = document.createElement("div");
   content.className = "t-cell";
   content.textContent = value || "";
+  if (originalValue != null) {
+    content.dataset.ohos2026PrivacyOriginal = String(originalValue);
+  }
   td.appendChild(content);
   return td;
 }
@@ -107,7 +110,7 @@ function showPerformanceDetailModal(app) {
 
   const appInfo = document.createElement("div");
   appInfo.className = "ohos2026-performance-modal-app";
-  appInfo.textContent = [app?.appName, app?.appId].filter(Boolean).join(" · ");
+  appInfo.textContent = isPrivacyModeEnabled() ? PRIVACY_MASK : [app?.appName, app?.appId].filter(Boolean).join(" · ");
   content.appendChild(appInfo);
 
   const performanceDatas = Array.isArray(app?.performanceDatas) ? [...app.performanceDatas] : [];
@@ -169,8 +172,8 @@ function createFilteredRow(app, table, headerRow, columnOrder) {
   const referenceCells = Array.from(table.querySelectorAll("tbody tr:not(.ohos2026-filtered-row) td"));
   const fallbackReference = referenceCells[0] || headerRow?.children?.[0] || null;
   const values = {
-    "应用名称": app.appName || "",
-    AppID: app.appId || "",
+    "应用名称": maskPrivateValue(app.appName || ""),
+    AppID: maskPrivateValue(app.appId || ""),
     "有效月活及评分": getPerformanceDisplayText(app),
     [MONTHLY_ACTIVE_HEADER]: app.latestMauText && app.latestMauText !== "暂无" ? app.latestMauText : "0",
     "应用类型": app.appType || "",
@@ -192,7 +195,8 @@ function createFilteredRow(app, table, headerRow, columnOrder) {
       return;
     }
 
-    row.appendChild(createTableCell(reference, values[headerText] ?? ""));
+    const originalValue = headerText === "应用名称" ? app.appName || "" : headerText === "AppID" ? app.appId || "" : undefined;
+    row.appendChild(createTableCell(reference, values[headerText] ?? "", "", originalValue));
   });
   return row;
 }
@@ -250,8 +254,8 @@ function updatePerformanceCells(table) {
     }
 
     const cells = Array.from(row.children);
-    const appId = textOf(cells[appIdIndex]);
-    const appName = textOf(cells[appNameIndex]);
+    const appId = getPrivateCellText(cells[appIdIndex]);
+    const appName = getPrivateCellText(cells[appNameIndex]);
     const app = appMap.get(appId) || appMap.get(appName);
     updatePerformanceCell(cells[performanceIndex], app);
   });
@@ -270,8 +274,8 @@ function updateFilteredRowsMonthlyCells(table) {
   const appIdIndex = getColumnIndex(headers, "AppID");
   table.querySelectorAll("tbody tr.ohos2026-filtered-row").forEach((row) => {
     const cells = Array.from(row.children);
-    const appId = textOf(cells[appIdIndex]);
-    const appName = textOf(cells[appNameIndex]);
+    const appId = getPrivateCellText(cells[appIdIndex]);
+    const appName = getPrivateCellText(cells[appNameIndex]);
     const app = appMap.get(appId) || appMap.get(appName);
     const monthlyCell = cells[monthlyIndex];
     if (monthlyCell) {
@@ -427,8 +431,8 @@ function renderMonthlyActiveColumn() {
     const existingCell =
       row.querySelector(".ohos2026-monthly-active-cell") ||
       (previousMonthlyIndex >= 0 && refreshedCells.length >= headerCount ? refreshedCells[previousMonthlyIndex] : null);
-    const appId = textOf(refreshedCells[appIdIndex]);
-    const appName = textOf(refreshedCells[appNameIndex]);
+    const appId = getPrivateCellText(refreshedCells[appIdIndex]);
+    const appName = getPrivateCellText(refreshedCells[appNameIndex]);
     const app = appMap.get(appId) || appMap.get(appName);
     const monthlyActiveCell = refreshedCells[insertAfterIndex];
 
@@ -447,6 +451,7 @@ function renderMonthlyActiveColumn() {
       console.log(`OHOS2026: 第 ${rowIndex + 1} 行未找到有效月活及评分单元格`, textOf(row));
     }
   });
+  applyPrivacyMaskToTable(table);
   setPageBadge(`已插入本月月活列，默认值 0，行数：${rows.length}`);
 }
 

@@ -25,9 +25,11 @@
         "src/content/data.js",
         "src/content/mau-snapshot.js",
         "src/content/page-dom.js",
+        "src/content/privacy.js",
         "src/content/filter.js",
         "src/content/table-render.js",
         "src/content/messaging.js",
+        "src/content/stats-panel.js",
         "src/content/main.js"
       ],
       "run_at": "document_end"

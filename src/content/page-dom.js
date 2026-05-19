@@ -144,8 +144,8 @@ async function fillMonthlyActiveFromModals() {
   let updatedCount = 0;
   for (const row of getRewardRows()) {
     const cells = Array.from(row.children);
-    const appName = textOf(cells[appNameIndex]);
-    const appId = textOf(cells[appIdIndex]);
+    const appName = getPrivateCellText(cells[appNameIndex]);
+    const appId = getPrivateCellText(cells[appIdIndex]);
     const target = getClickablePerformanceTarget(row, performanceIndex);
     if (!target) {
       continue;

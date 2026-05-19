@@ -1,4 +1,6 @@
 const STORAGE_KEY = "ohos2026.latestCapture";
+const PRIVACY_STORAGE_KEY = "ohos2026.privacyEnabled";
+const PRIVACY_MASK = "***";
 const TARGET_URL = "https://developer.huawei.com/consumer/cn/activity/harmonyos-incentive/data-query2026";
 
 const statusEl = document.querySelector("#status");
@@ -11,6 +13,7 @@ const fillMonthlyButton = document.querySelector("#fillMonthly");
 const scanTablesButton = document.querySelector("#scanTables");
 
 let latestState = null;
+let privacyModeEnabled = false;
 
 function setStatus(text) {
   statusEl.textContent = text;
@@ -33,6 +36,46 @@ function cleanForExport(state) {
   };
 }
 
+function maskAppRecord(item) {
+  return {
+    ...item,
+    appName: item?.appName ? PRIVACY_MASK : item?.appName,
+    appId: item?.appId ? PRIVACY_MASK : item?.appId,
+    developerName: item?.developerName ? PRIVACY_MASK : item?.developerName
+  };
+}
+
+function maskTableSnapshots(tables) {
+  return tables.map((table) => ({
+    ...table,
+    rows: Array.isArray(table.rows)
+      ? table.rows.map((row) => row.map((cell, index) => (index <= 1 && cell ? PRIVACY_MASK : cell)))
+      : []
+  }));
+}
+
+function getPreviewData(exportData) {
+  if (!privacyModeEnabled) {
+    return {
+      capturedAt: exportData.capturedAt,
+      rewardAppCount: exportData.rewardApps.length,
+      hotAppCount: exportData.hotApps.length,
+      rewardApps: exportData.rewardApps,
+      hotApps: exportData.hotApps
+    };
+  }
+
+  return {
+    capturedAt: exportData.capturedAt,
+    rewardAppCount: exportData.rewardApps.length,
+    hotAppCount: exportData.hotApps.length,
+    rewardApps: exportData.rewardApps.map(maskAppRecord),
+    hotApps: exportData.hotApps.map(maskAppRecord),
+    tableSnapshots: maskTableSnapshots(exportData.tableSnapshots),
+    rawResponses: "隐私模式已隐藏"
+  };
+}
+
 function render(state) {
   latestState = state;
   const exportData = cleanForExport(state);
@@ -52,17 +95,7 @@ function render(state) {
   const updatedText = state.lastUpdated ? new Date(state.lastUpdated).toLocaleString("zh-CN") : "未知时间";
   setStatus(hasData ? `已捕获数据：${updatedText}` : "页面已连接，正在等待登录态数据加载。");
 
-  previewEl.textContent = JSON.stringify(
-    {
-      capturedAt: exportData.capturedAt,
-      rewardAppCount: exportData.rewardApps.length,
-      hotAppCount: exportData.hotApps.length,
-      rewardApps: exportData.rewardApps,
-      hotApps: exportData.hotApps
-    },
-    null,
-    2
-  );
+  previewEl.textContent = JSON.stringify(getPreviewData(exportData), null, 2);
 }
 
 async function getActiveTab() {
@@ -152,4 +185,7 @@ fillMonthlyButton.addEventListener("click", async () => {
   }
 });
 
-requestPageState();
+chrome.storage.local.get(PRIVACY_STORAGE_KEY, (result) => {
+  privacyModeEnabled = Boolean(result?.[PRIVACY_STORAGE_KEY]);
+  requestPageState();
+});
