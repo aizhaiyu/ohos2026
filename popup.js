@@ -131,14 +131,14 @@ insertColumnButton.addEventListener("click", () => requestPageState("OHOS2026_IN
 
 fillMonthlyButton.addEventListener("click", async () => {
   fillMonthlyButton.disabled = true;
-  setStatus("正在逐行读取本月月活，请不要操作页面...");
+  setStatus("正在调试读取当前页明细，请不要操作页面...");
   const tab = await getActiveTab();
 
   try {
     const response = await chrome.tabs.sendMessage(tab.id, { type: "OHOS2026_FILL_MONTHLY_FROM_MODALS" });
     if (response?.ok) {
       render(response.state);
-      setStatus(`已读取 ${response.updatedCount ?? 0} 行本月月活。`);
+      setStatus(`已读取 ${response.updatedCount ?? 0} 行当前页明细。`);
     } else {
       setStatus(response?.message || "读取失败，请确认当前在目标页面。");
       if (response?.diagnostics) {

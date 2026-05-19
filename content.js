@@ -11,6 +11,49 @@
   const REWARD_APP_ENDPOINT = "partnerActivityService/v1/developer/queryDeveloperRewardAppList";
   const HOT_APP_ENDPOINT = "partnerActivityService/v1/developer/queryDeveloperRewardHotAppList";
   const MONTHLY_ACTIVE_HEADER = "本月月活";
+  const FAILED_PERFORMANCE_LABEL = "暂不满足";
+  const SCORE_VALUE_KEYS = [
+    "monthEndScore",
+    "monthlyScore",
+    "ratingScore",
+    "avgScore",
+    "averageScore",
+    "score",
+    "rating",
+    "grade",
+    "rate",
+    "月末评分",
+    "评分"
+  ];
+  const SCORE_COUNT_KEYS = [
+    "monthEndScoreCount",
+    "monthlyScoreCount",
+    "ratingCount",
+    "scoreCount",
+    "commentCount",
+    "reviewCount",
+    "evaluationCount",
+    "gradeCount",
+    "rateCount",
+    "ratingNum",
+    "scoreNum",
+    "commentNum",
+    "reviewNum",
+    "evaluationNum",
+    "gradeNum",
+    "月末评分个数",
+    "评分个数",
+    "评论数",
+    "评价数"
+  ];
+  const FILTER_ALL = "all";
+  const FILTER_PASSED = "passed";
+  const FILTER_FAILED = "failed";
+  const PERFORMANCE_FILTER_OPTIONS = [
+    { value: FILTER_ALL, label: "全部" },
+    { value: FILTER_PASSED, label: "已达标" },
+    { value: FILTER_FAILED, label: "未达标" }
+  ];
 
   const state = {
     lastUpdated: null,
@@ -25,6 +68,12 @@
   let lastSavedMauByApp = {};
   let mauSnapshotLoaded = false;
   let pendingMauSnapshotSave = false;
+  const filterState = {
+    value: FILTER_ALL,
+    requestId: 0,
+    originalRows: null,
+    renderingFilteredRows: false
+  };
   const pendingFetchAllRequests = new Map();
 
   function injectPageStyles() {
@@ -47,6 +96,152 @@
         color: #18a058;
         font-weight: 700;
         white-space: nowrap;
+      }
+      .ohos2026-performance-filter-wrap {
+        position: relative;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        max-width: 100%;
+        cursor: pointer;
+        vertical-align: middle;
+      }
+      .ohos2026-performance-filter-wrap::after {
+        content: "▼";
+        display: inline-block;
+        color: rgba(0, 0, 0, 0.46);
+        font-size: 10px;
+        line-height: 1;
+        transform: scaleY(0.78);
+      }
+      .ohos2026-performance-filter-wrap:hover::after,
+      .ohos2026-performance-filter-wrap:focus-within::after {
+        color: rgba(0, 0, 0, 0.72);
+      }
+      .ohos2026-performance-filter-label {
+        display: inline-block;
+      }
+      .ohos2026-performance-filter {
+        position: absolute;
+        inset: -4px -16px -4px -4px;
+        width: calc(100% + 20px);
+        height: calc(100% + 8px);
+        opacity: 0;
+        border: 0;
+        cursor: pointer;
+      }
+      .ohos2026-performance-filter:disabled {
+        cursor: wait;
+      }
+      .ohos2026-performance-filter-wrap.is-loading::after {
+        color: rgba(0, 0, 0, 0.28);
+      }
+      .ohos2026-filter-summary {
+        display: none;
+        margin: 0 0 8px;
+        padding: 0;
+        color: rgba(0, 0, 0, 0.52);
+        font-size: 12px;
+        line-height: 18px;
+      }
+      .ohos2026-filter-summary.is-visible {
+        display: block;
+      }
+      .ohos2026-filter-summary.is-error {
+        color: #d93026;
+      }
+      .ohos2026-filtered-empty {
+        padding: 28px 12px !important;
+        text-align: center !important;
+        color: rgba(0, 0, 0, 0.52) !important;
+        font-weight: 400 !important;
+      }
+      .ohos2026-filter-summary-count {
+        color: rgba(0, 0, 0, 0.78);
+        font-weight: 500;
+      }
+      .ohos2026-performance-review-cell {
+        white-space: nowrap;
+      }
+      .ohos2026-performance-detail-trigger {
+        cursor: pointer;
+      }
+      .ohos2026-performance-detail-trigger:hover {
+        color: #0a59f7;
+      }
+      .ohos2026-performance-modal {
+        position: fixed;
+        inset: 0;
+        z-index: 9999;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(0, 0, 0, 0.36);
+      }
+      .ohos2026-performance-modal-main {
+        width: min(720px, calc(100vw - 48px));
+        max-height: calc(100vh - 80px);
+        overflow: hidden;
+        background: #fff;
+        border-radius: 12px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.18);
+      }
+      .ohos2026-performance-modal-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 22px 28px;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+        font-size: 18px;
+        font-weight: 600;
+        color: rgba(0, 0, 0, 0.9);
+      }
+      .ohos2026-performance-modal-close {
+        width: 28px;
+        height: 28px;
+        border: 0;
+        background: transparent;
+        color: rgba(0, 0, 0, 0.56);
+        cursor: pointer;
+        font-size: 22px;
+        line-height: 28px;
+      }
+      .ohos2026-performance-modal-close:hover {
+        color: rgba(0, 0, 0, 0.9);
+      }
+      .ohos2026-performance-modal-content {
+        padding: 24px 28px 28px;
+        overflow: auto;
+        max-height: calc(100vh - 170px);
+      }
+      .ohos2026-performance-modal-app {
+        margin: 0 0 16px;
+        color: rgba(0, 0, 0, 0.6);
+        font-size: 14px;
+        line-height: 20px;
+      }
+      .ohos2026-performance-modal-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 14px;
+        color: rgba(0, 0, 0, 0.9);
+      }
+      .ohos2026-performance-modal-table th,
+      .ohos2026-performance-modal-table td {
+        padding: 14px 16px;
+        text-align: left;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+        white-space: nowrap;
+      }
+      .ohos2026-performance-modal-table th {
+        background: rgba(241, 243, 245, 0.5);
+        font-weight: 500;
+      }
+      .ohos2026-performance-modal-empty {
+        padding: 24px 0;
+        color: rgba(0, 0, 0, 0.52);
+        text-align: center;
+        font-size: 14px;
       }
     `;
     document.documentElement.appendChild(style);
@@ -120,6 +315,90 @@
     return [...performanceDatas].sort((left, right) => getMonthSortValue(right.month) - getMonthSortValue(left.month))[0] ?? null;
   }
 
+  function pickFirstValue(source, keys) {
+    if (!source || typeof source !== "object") {
+      return null;
+    }
+
+    for (const key of keys) {
+      if (source[key] != null && source[key] !== "") {
+        return source[key];
+      }
+    }
+
+    const entries = Object.entries(source);
+    for (const [key, value] of entries) {
+      const normalizedKey = String(key).toLowerCase();
+      const matched = keys.some((candidate) => normalizedKey === String(candidate).toLowerCase());
+      if (matched && value != null && value !== "") {
+        return value;
+      }
+    }
+
+    return null;
+  }
+
+  function normalizeCount(value) {
+    if (value == null || value === "") {
+      return null;
+    }
+
+    const text = String(value).trim();
+    if (!text || text === "暂无" || text === "-") {
+      return null;
+    }
+
+    const numericText = text.replace(/[^\d.-]/g, "");
+    const numericValue = Number(numericText);
+    return Number.isFinite(numericValue) ? Math.max(0, Math.trunc(numericValue)) : null;
+  }
+
+  function formatScore(value) {
+    if (value == null || value === "") {
+      return "暂无";
+    }
+
+    const text = String(value).trim();
+    if (!text || text === "暂无" || text === "-") {
+      return "暂无";
+    }
+
+    const numericValue = Number(text.replace(/[^\d.-]/g, ""));
+    if (!Number.isFinite(numericValue)) {
+      return text;
+    }
+    if (numericValue === -1) {
+      return "不涉及";
+    }
+    if (numericValue === 0) {
+      return "暂无";
+    }
+
+    return numericValue.toFixed(1);
+  }
+
+  function normalizeReviewData(performanceData) {
+    if (!performanceData) {
+      return {
+        latestReviewCount: null,
+        latestReviewCountText: "",
+        latestScore: "",
+        latestReviewText: ""
+      };
+    }
+
+    const scoreCount = normalizeCount(pickFirstValue(performanceData, SCORE_COUNT_KEYS));
+    const displayScoreCount = scoreCount ?? 0;
+    const score = formatScore(pickFirstValue(performanceData, SCORE_VALUE_KEYS));
+
+    return {
+      latestReviewCount: scoreCount,
+      latestReviewCountText: new Intl.NumberFormat("zh-CN").format(displayScoreCount),
+      latestScore: score,
+      latestReviewText: `${score} / ${new Intl.NumberFormat("zh-CN").format(displayScoreCount)}评`
+    };
+  }
+
   function formatMau(value) {
     if (value == null || value === "") {
       return "暂无";
@@ -144,6 +423,7 @@
     return list.map((item) => {
       const performanceDatas = Array.isArray(item.performanceDatas) ? item.performanceDatas : [];
       const latestPerformance = getLatestPerformanceData(performanceDatas);
+      const latestReviewData = normalizeReviewData(latestPerformance);
 
       return {
         appName: item.appName ?? "",
@@ -158,6 +438,7 @@
         latestMauMonth: latestPerformance?.month ?? "",
         latestMau: latestPerformance?.mau ?? null,
         latestMauText: formatMau(latestPerformance?.mau),
+        ...latestReviewData,
         performanceDatas
       };
     });
@@ -174,6 +455,59 @@
       appName: item.appName ?? "",
       developerName: item.developerName ?? ""
     }));
+  }
+
+  function getPerformanceLabel(app) {
+    return app?.performanceFlagStr || labelByIndex(app?.performanceFlag) || "";
+  }
+
+  function getPerformanceDisplayText(app) {
+    const label = getPerformanceLabel(app);
+    if (label === FAILED_PERFORMANCE_LABEL && app?.latestReviewText) {
+      return app.latestReviewText;
+    }
+    return label;
+  }
+
+  function formatPerformanceMau(value) {
+    return formatMau(value);
+  }
+
+  function formatPerformanceRating(value) {
+    return formatScore(value);
+  }
+
+  function formatPerformanceRatingCount(value) {
+    const count = normalizeCount(value);
+    return count == null ? "暂无" : new Intl.NumberFormat("zh-CN").format(count);
+  }
+
+  function matchesPerformanceFilter(app, filterValue) {
+    const label = getPerformanceLabel(app);
+    if (filterValue === FILTER_PASSED) {
+      return label === "满足";
+    }
+    if (filterValue === FILTER_FAILED) {
+      return label !== "满足";
+    }
+    return true;
+  }
+
+  function getFilterLabel(filterValue) {
+    return PERFORMANCE_FILTER_OPTIONS.find((option) => option.value === filterValue)?.label || "全部";
+  }
+
+  function getHeaderLabel(cell) {
+    if (!cell) {
+      return "";
+    }
+
+    const clone = cell.cloneNode(true);
+    clone.querySelectorAll(".ohos2026-performance-filter").forEach((element) => element.remove());
+    clone.querySelectorAll(".ohos2026-performance-filter-wrap").forEach((element) => {
+      element.replaceWith(element.querySelector(".ohos2026-performance-filter-label")?.textContent || "");
+    });
+    return textOf(clone);
   }
 
   function dedupeBy(items, keyFn) {
@@ -361,7 +695,7 @@
 
   function findRewardTable() {
     const exactTable = Array.from(document.querySelectorAll(".appdata-container table, .incentive-query-container table, table")).find((table) => {
-      const headerText = textOf(table.querySelector("thead"));
+      const headerText = Array.from(table.querySelectorAll("thead th")).map(getHeaderLabel).join(" ");
       return headerText.includes("应用名称") && headerText.includes("AppID") && findPerformanceColumnIndex(table) >= 0;
     });
     if (exactTable) {
@@ -427,16 +761,22 @@
       return {
         latestMauMonth: "",
         latestMau: null,
-        latestMauText: "暂无"
+        latestMauText: "暂无",
+        ...normalizeReviewData(null)
       };
     }
 
     const cells = Array.from(row.querySelectorAll("td")).map((cell) => textOf(cell));
     const mauText = cells[1] && cells[1] !== "暂无" ? cells[1].replace(/[^\d.-]/g, "") : "暂无";
+    const reviewData = normalizeReviewData({
+      rating: cells[2],
+      ratingCount: cells[3]
+    });
     return {
       latestMauMonth: cells[0] ?? "",
       latestMau: Number.isFinite(Number(mauText)) ? Number(mauText) : null,
-      latestMauText: mauText === "暂无" ? "暂无" : formatMau(mauText)
+      latestMauText: mauText === "暂无" ? "暂无" : formatMau(mauText),
+      ...reviewData
     };
   }
 
@@ -534,7 +874,7 @@
 
   function getColumnIndex(headers, matcher) {
     return headers.findIndex((cell) => {
-      const text = textOf(cell);
+      const text = getHeaderLabel(cell);
       return typeof matcher === "function" ? matcher(text, cell) : text.includes(matcher);
     });
   }
@@ -550,6 +890,254 @@
   function findPerformanceColumnIndex(table) {
     const headers = Array.from(table?.querySelectorAll("thead tr th") || []);
     return getColumnIndex(headers, isPerformanceHeaderText);
+  }
+
+  function createPerformanceFilterSelect() {
+    const select = document.createElement("select");
+    select.className = "ohos2026-performance-filter";
+    select.title = "按达标状态筛选全量应用";
+    select.setAttribute("aria-label", "按达标状态筛选全量应用");
+
+    for (const optionConfig of PERFORMANCE_FILTER_OPTIONS) {
+      const option = document.createElement("option");
+      option.value = optionConfig.value;
+      option.textContent = optionConfig.label;
+      select.appendChild(option);
+    }
+
+    select.value = filterState.value;
+    select.addEventListener("click", (event) => event.stopPropagation());
+    select.addEventListener("mousedown", (event) => event.stopPropagation());
+    select.addEventListener("change", () => {
+      applyPerformanceFilter(select.value);
+    });
+    return select;
+  }
+
+  function ensurePerformanceFilterControl(headerCell) {
+    if (!headerCell) {
+      return null;
+    }
+
+    let select = headerCell.querySelector(".ohos2026-performance-filter");
+    if (!select) {
+      const content = headerCell.querySelector(".t-cell") || headerCell;
+      const originalText = getHeaderLabel(headerCell);
+      content.textContent = "";
+
+      const wrapper = document.createElement("span");
+      wrapper.className = "ohos2026-performance-filter-wrap";
+      wrapper.title = "按达标状态筛选全量应用";
+
+      const label = document.createElement("span");
+      label.className = "ohos2026-performance-filter-label";
+      label.textContent = originalText || "有效月活及评分";
+
+      select = createPerformanceFilterSelect();
+      wrapper.append(label, select);
+      content.appendChild(wrapper);
+    }
+    select.dataset.ohos2026ColumnIndex = String(Array.from(headerCell.parentElement?.children || []).indexOf(headerCell));
+    if (select.value !== filterState.value) {
+      select.value = filterState.value;
+    }
+    return select;
+  }
+
+  function setPerformanceFilterLoading(isLoading) {
+    document.querySelectorAll(".ohos2026-performance-filter").forEach((select) => {
+      select.disabled = isLoading;
+      select.closest(".ohos2026-performance-filter-wrap")?.classList.toggle("is-loading", isLoading);
+    });
+  }
+
+  function findRewardSection(table) {
+    let node = table;
+    while (node && node !== document.body) {
+      const previous = node.previousElementSibling;
+      if (previous && textOf(previous).includes("激励计划上架应用数据")) {
+        return node;
+      }
+      if (textOf(node).includes("激励计划上架应用数据")) {
+        return node;
+      }
+      node = node.parentElement;
+    }
+    return table.parentElement || table;
+  }
+
+  function ensureFilterSummary(table) {
+    const container = table.parentElement || findRewardSection(table);
+    let summary = container.querySelector(":scope > .ohos2026-filter-summary");
+    if (!summary) {
+      summary = document.createElement("div");
+      summary.className = "ohos2026-filter-summary";
+      container.insertBefore(summary, table);
+    }
+    return summary;
+  }
+
+  function updateFilterSummary(table, message = "", isError = false) {
+    const summary = ensureFilterSummary(table);
+    if (typeof message === "string") {
+      summary.textContent = message;
+    } else {
+      summary.replaceChildren(message);
+    }
+    summary.classList.toggle("is-visible", Boolean(message));
+    summary.classList.toggle("is-error", Boolean(isError));
+  }
+
+  function createFilterSummaryContent(filterValue, matchedCount, totalCount) {
+    const fragment = document.createDocumentFragment();
+    fragment.append("筛选：", getFilterLabel(filterValue), " ");
+
+    const count = document.createElement("span");
+    count.className = "ohos2026-filter-summary-count";
+    count.textContent = `${matchedCount} / ${totalCount}`;
+    fragment.appendChild(count);
+    fragment.append("，已临时显示全量筛选结果");
+    return fragment;
+  }
+
+  function getRewardPaginationContainer(table) {
+    let node = table;
+    while (node && node !== document.body) {
+      const next = node.nextElementSibling;
+      if (next && textOf(next).includes("项/页")) {
+        return next;
+      }
+      node = node.parentElement;
+    }
+    return null;
+  }
+
+  function setRewardPaginationHidden(table, isHidden) {
+    const pagination = getRewardPaginationContainer(table);
+    if (!pagination) {
+      return;
+    }
+
+    if (isHidden) {
+      pagination.dataset.ohos2026HiddenByFilter = "true";
+      pagination.style.display = "none";
+    } else if (pagination.dataset.ohos2026HiddenByFilter === "true") {
+      pagination.style.display = "";
+      delete pagination.dataset.ohos2026HiddenByFilter;
+    }
+  }
+
+  function snapshotOriginalRows(tbody) {
+    if (!tbody || filterState.originalRows) {
+      return;
+    }
+
+    filterState.originalRows = Array.from(tbody.children);
+  }
+
+  function restoreOriginalRows(table) {
+    const tbody = table?.querySelector("tbody");
+    if (!tbody) {
+      return;
+    }
+
+    if (filterState.originalRows) {
+      filterState.renderingFilteredRows = true;
+      tbody.replaceChildren(...filterState.originalRows);
+      filterState.renderingFilteredRows = false;
+      filterState.originalRows = null;
+    }
+    setRewardPaginationHidden(table, false);
+    updateFilterSummary(table, "");
+    renderMonthlyActiveColumn();
+  }
+
+  function renderFilteredRows(table, apps, filterValue) {
+    const tbody = table?.querySelector("tbody");
+    const headerRow = table?.querySelector("thead tr");
+    if (!tbody || !headerRow) {
+      return;
+    }
+
+    snapshotOriginalRows(tbody);
+    const columnOrder = Array.from(headerRow.children).map(getHeaderLabel);
+    const filteredApps = apps.filter((app) => matchesPerformanceFilter(app, filterValue));
+    const rows = filteredApps.map((app) => createFilteredRow(app, table, headerRow, columnOrder));
+
+    if (rows.length === 0) {
+      const row = document.createElement("tr");
+      row.className = "ohos2026-filtered-row";
+      const cell = document.createElement("td");
+      cell.className = "ohos2026-filtered-empty";
+      cell.colSpan = Math.max(columnOrder.length, 1);
+      cell.textContent = "没有符合筛选条件的应用";
+      row.appendChild(cell);
+      rows.push(row);
+    }
+
+    filterState.renderingFilteredRows = true;
+    tbody.replaceChildren(...rows);
+    filterState.renderingFilteredRows = false;
+    setRewardPaginationHidden(table, true);
+    updateFilterSummary(table, createFilterSummaryContent(filterValue, filteredApps.length, apps.length));
+  }
+
+  function refreshActiveFilterRows() {
+    if (filterState.value === FILTER_ALL || filterState.renderingFilteredRows) {
+      return;
+    }
+
+    const table = findRewardTable();
+    if (!table) {
+      return;
+    }
+
+    renderFilteredRows(table, state.rewardApps, filterState.value);
+  }
+
+  async function applyPerformanceFilter(filterValue) {
+    const table = findRewardTable();
+    if (!table) {
+      return;
+    }
+
+    filterState.value = filterValue || FILTER_ALL;
+    const headerRow = table.querySelector("thead tr");
+    const performanceIndex = findPerformanceColumnIndex(table);
+    ensurePerformanceFilterControl(headerRow?.children?.[performanceIndex]);
+
+    if (filterState.value === FILTER_ALL) {
+      restoreOriginalRows(table);
+      return;
+    }
+
+    const requestId = filterState.requestId + 1;
+    filterState.requestId = requestId;
+    setPerformanceFilterLoading(true);
+    updateFilterSummary(table, `正在获取全部应用数据...`);
+
+    try {
+      const response = await fetchAllRewardApps();
+      if (filterState.requestId !== requestId || filterState.value === FILTER_ALL) {
+        return;
+      }
+
+      if (!response?.ok) {
+        updateFilterSummary(table, response?.message || "获取全部应用数据失败", true);
+        return;
+      }
+
+      renderFilteredRows(table, state.rewardApps, filterState.value);
+      persist();
+    } catch (error) {
+      if (filterState.requestId === requestId) {
+        updateFilterSummary(table, `筛选失败：${error?.message || error}`, true);
+      }
+    } finally {
+      if (filterState.requestId === requestId) {
+        setPerformanceFilterLoading(false);
+      }
+    }
   }
 
   function getPageDiagnostics() {
@@ -591,6 +1179,246 @@
     td.style.textAlign = td.style.textAlign || "left";
     updateMonthlyBodyCell(td, app);
     return td;
+  }
+
+  function createTableCell(referenceCell, value, className = "") {
+    const td = document.createElement("td");
+    copyScopedAttributes(referenceCell, td);
+    td.style.cssText = referenceCell?.getAttribute("style") || "";
+    td.style.padding = td.style.padding || "18px 24px";
+    td.style.fontSize = td.style.fontSize || "14px";
+    if (className) {
+      td.className = className;
+    }
+
+    const content = document.createElement("div");
+    content.className = "t-cell";
+    content.textContent = value || "";
+    td.appendChild(content);
+    return td;
+  }
+
+  function closeCustomPerformanceModal(event) {
+    if (event?.type === "keydown" && event.key !== "Escape") {
+      return;
+    }
+
+    document.querySelector(".ohos2026-performance-modal")?.remove();
+    document.removeEventListener("keydown", closeCustomPerformanceModal);
+  }
+
+  function createModalCell(value) {
+    const td = document.createElement("td");
+    td.textContent = value;
+    return td;
+  }
+
+  function showPerformanceDetailModal(app) {
+    closeCustomPerformanceModal();
+
+    const modal = document.createElement("div");
+    modal.className = "ohos2026-performance-modal";
+    modal.addEventListener("click", (event) => {
+      if (event.target === modal) {
+        closeCustomPerformanceModal();
+      }
+    });
+
+    const main = document.createElement("div");
+    main.className = "ohos2026-performance-modal-main";
+
+    const header = document.createElement("div");
+    header.className = "ohos2026-performance-modal-header";
+
+    const title = document.createElement("span");
+    title.textContent = "有效活跃及评分明细数据";
+
+    const closeButton = document.createElement("button");
+    closeButton.className = "ohos2026-performance-modal-close";
+    closeButton.type = "button";
+    closeButton.setAttribute("aria-label", "关闭");
+    closeButton.textContent = "×";
+    closeButton.addEventListener("click", closeCustomPerformanceModal);
+
+    header.append(title, closeButton);
+
+    const content = document.createElement("div");
+    content.className = "ohos2026-performance-modal-content";
+
+    const appInfo = document.createElement("div");
+    appInfo.className = "ohos2026-performance-modal-app";
+    appInfo.textContent = [app?.appName, app?.appId].filter(Boolean).join(" · ");
+    content.appendChild(appInfo);
+
+    const performanceDatas = Array.isArray(app?.performanceDatas) ? [...app.performanceDatas] : [];
+    if (performanceDatas.length === 0) {
+      const empty = document.createElement("div");
+      empty.className = "ohos2026-performance-modal-empty";
+      empty.textContent = "暂无明细数据";
+      content.appendChild(empty);
+    } else {
+      const table = document.createElement("table");
+      table.className = "ohos2026-performance-modal-table";
+
+      const thead = document.createElement("thead");
+      const headerRow = document.createElement("tr");
+      ["月份", "有效月活", "月末评分", "月末评分个数"].forEach((text) => {
+        const th = document.createElement("th");
+        th.textContent = text;
+        headerRow.appendChild(th);
+      });
+      thead.appendChild(headerRow);
+
+      const tbody = document.createElement("tbody");
+      performanceDatas
+        .sort((left, right) => getMonthSortValue(left.month) - getMonthSortValue(right.month))
+        .forEach((item) => {
+          const row = document.createElement("tr");
+          row.append(
+            createModalCell(item.month == null || item.month === "" ? "暂无" : String(item.month)),
+            createModalCell(formatPerformanceMau(item.mau)),
+            createModalCell(formatPerformanceRating(item.rating)),
+            createModalCell(formatPerformanceRatingCount(item.ratingCount))
+          );
+          tbody.appendChild(row);
+        });
+
+      table.append(thead, tbody);
+      content.appendChild(table);
+    }
+
+    main.append(header, content);
+    modal.appendChild(main);
+    document.body.appendChild(modal);
+    document.addEventListener("keydown", closeCustomPerformanceModal);
+  }
+
+  function createPerformanceBodyCell(referenceCell, app) {
+    const td = createTableCell(referenceCell, getPerformanceDisplayText(app), "ohos2026-performance-review-cell");
+    td.classList.add("ohos2026-performance-detail-trigger");
+    td.title = "查看有效活跃及评分明细数据";
+    td.addEventListener("click", () => showPerformanceDetailModal(app));
+    return td;
+  }
+
+  function createFilteredRow(app, table, headerRow, columnOrder) {
+    const row = document.createElement("tr");
+    row.className = "ohos2026-filtered-row";
+    row.dataset.ohos2026Filtered = "true";
+
+    const referenceCells = Array.from(table.querySelectorAll("tbody tr:not(.ohos2026-filtered-row) td"));
+    const fallbackReference = referenceCells[0] || headerRow?.children?.[0] || null;
+    const values = {
+      "应用名称": app.appName || "",
+      AppID: app.appId || "",
+      "有效月活及评分": getPerformanceDisplayText(app),
+      [MONTHLY_ACTIVE_HEADER]: app.latestMauText && app.latestMauText !== "暂无" ? app.latestMauText : "0",
+      "应用类型": app.appType || "",
+      "首次上架时间": app.firstOnshelfTime || "",
+      "在架状态": app.isOnshelf || "",
+      "功能完备情况": app.funcCompleted || "",
+      "账号服务": app.accountIntegrated || ""
+    };
+
+    columnOrder.forEach((headerText, index) => {
+      const reference = referenceCells[index] || fallbackReference;
+      if (headerText === MONTHLY_ACTIVE_HEADER) {
+        row.appendChild(createMonthlyBodyCell(reference, app));
+        return;
+      }
+
+      if (headerText === "有效月活及评分") {
+        row.appendChild(createPerformanceBodyCell(reference, app));
+        return;
+      }
+
+      row.appendChild(createTableCell(reference, values[headerText] ?? ""));
+    });
+    return row;
+  }
+
+  function updatePerformanceCell(cell, app) {
+    const displayText = getPerformanceDisplayText(app);
+    if (!cell || !displayText || getPerformanceLabel(app) !== FAILED_PERFORMANCE_LABEL) {
+      return;
+    }
+
+    cell.classList.add("ohos2026-performance-review-cell");
+    cell.title = app?.latestMauMonth ? `${app.latestMauMonth}月末评分：${displayText}` : `月末评分：${displayText}`;
+    if (textOf(cell).includes(displayText)) {
+      cell.dataset.ohos2026PerformanceReviewText = displayText;
+      return;
+    }
+
+    const previousText = cell.dataset.ohos2026PerformanceReviewText;
+    const walker = document.createTreeWalker(cell, NodeFilter.SHOW_TEXT);
+    let textNode = walker.nextNode();
+    while (textNode) {
+      if (textNode.nodeValue.includes(FAILED_PERFORMANCE_LABEL) || (previousText && textNode.nodeValue.includes(previousText))) {
+        textNode.nodeValue = textNode.nodeValue
+          .replace(FAILED_PERFORMANCE_LABEL, displayText)
+          .replace(previousText || FAILED_PERFORMANCE_LABEL, displayText);
+        cell.dataset.ohos2026PerformanceReviewText = displayText;
+        return;
+      }
+      textNode = walker.nextNode();
+    }
+
+    const content = cell.querySelector(".t-cell") || cell;
+    content.textContent = displayText;
+    cell.dataset.ohos2026PerformanceReviewText = displayText;
+  }
+
+  function updatePerformanceCells(table) {
+    const headerRow = table?.querySelector("thead tr");
+    if (!table || !headerRow) {
+      return;
+    }
+
+    const headers = Array.from(headerRow.children);
+    const performanceIndex = findPerformanceColumnIndex(table);
+    const appNameIndex = getColumnIndex(headers, "应用名称");
+    const appIdIndex = getColumnIndex(headers, "AppID");
+    if (performanceIndex < 0 || (appNameIndex < 0 && appIdIndex < 0)) {
+      return;
+    }
+
+    const appMap = getRewardAppMap();
+    table.querySelectorAll("tbody tr").forEach((row) => {
+      if (row.querySelectorAll("td").length <= 1) {
+        return;
+      }
+
+      const cells = Array.from(row.children);
+      const appId = textOf(cells[appIdIndex]);
+      const appName = textOf(cells[appNameIndex]);
+      const app = appMap.get(appId) || appMap.get(appName);
+      updatePerformanceCell(cells[performanceIndex], app);
+    });
+  }
+
+  function updateFilteredRowsMonthlyCells(table) {
+    const headerRow = table?.querySelector("thead tr");
+    const monthlyIndex = getColumnIndex(Array.from(headerRow?.children || []), MONTHLY_ACTIVE_HEADER);
+    if (!table || monthlyIndex < 0) {
+      return;
+    }
+
+    const appMap = getRewardAppMap();
+    const headers = Array.from(headerRow.children);
+    const appNameIndex = getColumnIndex(headers, "应用名称");
+    const appIdIndex = getColumnIndex(headers, "AppID");
+    table.querySelectorAll("tbody tr.ohos2026-filtered-row").forEach((row) => {
+      const cells = Array.from(row.children);
+      const appId = textOf(cells[appIdIndex]);
+      const appName = textOf(cells[appNameIndex]);
+      const app = appMap.get(appId) || appMap.get(appName);
+      const monthlyCell = cells[monthlyIndex];
+      if (monthlyCell) {
+        monthlyCell.classList.add("ohos2026-monthly-active-cell");
+        updateMonthlyBodyCell(monthlyCell, app);
+      }
+    });
   }
 
   function updateMonthlyBodyCell(cell, app) {
@@ -689,6 +1517,7 @@
     const appIdIndex = getColumnIndex(headers, "AppID");
     const insertAfterIndex = performanceIndex >= 0 ? performanceIndex : appIdIndex >= 0 ? appIdIndex : 2;
     const previousMonthlyIndex = monthlyIndex;
+    ensurePerformanceFilterControl(headers[performanceIndex]);
 
     console.log(
       "OHOS2026: 表头",
@@ -716,8 +1545,18 @@
       return;
     }
 
+    updatePerformanceCells(table);
+
+    if (filterState.value !== FILTER_ALL) {
+      updateFilteredRowsMonthlyCells(table);
+      setPageBadge("筛选结果已同步本月月活列");
+      return;
+    }
+
     const appMap = getRewardAppMap();
-    const rows = Array.from(table.querySelectorAll("tbody tr")).filter((row) => row.querySelectorAll("td").length > 1);
+    const rows = Array.from(table.querySelectorAll("tbody tr")).filter(
+      (row) => row.querySelectorAll("td").length > 1 && !row.dataset.ohos2026Filtered
+    );
 
     rows.forEach((row, rowIndex) => {
       if (syncRowSpan(row, monthlyIndex)) {
@@ -831,6 +1670,7 @@
         state.rewardApps = upsertByPage(state.rewardApps, apps, page, (item) => `${item.appId || item.appName}:${item.__page}`);
       }
       renderMonthlyActiveColumn();
+      refreshActiveFilterRows();
       persist();
 
       if (pending) {
@@ -878,7 +1718,10 @@
     }
 
     if (message?.type === "OHOS2026_FETCH_ALL_REWARD_APPS") {
-      fetchAllRewardApps().then(sendResponse);
+      fetchAllRewardApps().then((response) => {
+        refreshActiveFilterRows();
+        sendResponse(response);
+      });
       return true;
     }
 
