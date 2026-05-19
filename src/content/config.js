@@ -48,10 +48,20 @@ var SCORE_COUNT_KEYS = [
 var FILTER_ALL = "all";
 var FILTER_PASSED = "passed";
 var FILTER_FAILED = "failed";
+var FILTER_MAU_MET_REVIEW_MISSING = "mau-met-review-missing";
+var FILTER_REVIEW_MET_MAU_MISSING = "review-met-mau-missing";
+var FILTER_NEAR_TARGET = "near-target";
+var MAU_TARGET = 400;
+var REVIEW_COUNT_TARGET = 10;
+var NEAR_TARGET_MAU = 300;
+var NEAR_TARGET_REVIEW_COUNT = 8;
 var PERFORMANCE_FILTER_OPTIONS = [
   { value: FILTER_ALL, label: "全部" },
   { value: FILTER_PASSED, label: "已达标" },
-  { value: FILTER_FAILED, label: "未达标" }
+  { value: FILTER_FAILED, label: "未达标" },
+  { value: FILTER_MAU_MET_REVIEW_MISSING, label: "月活够，评分不足" },
+  { value: FILTER_REVIEW_MET_MAU_MISSING, label: "评分够，月活不足" },
+  { value: FILTER_NEAR_TARGET, label: "接近达标" }
 ];
 
 var state = {

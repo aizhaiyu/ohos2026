@@ -216,6 +216,41 @@ function getPerformanceDisplayText(app) {
   return label;
 }
 
+function getLatestReviewCount(app) {
+  if (!app) {
+    return 0;
+  }
+
+  if (app.latestReviewCount != null && app.latestReviewCount !== "") {
+    const value = Number(app.latestReviewCount);
+    return Number.isFinite(value) && value >= 0 ? value : 0;
+  }
+
+  const latestPerformance = getLatestPerformanceData(app.performanceDatas);
+  const value = normalizeCount(pickFirstValue(latestPerformance, SCORE_COUNT_KEYS));
+  return value ?? 0;
+}
+
+function isLatestMauMet(app) {
+  return (getNumericMau(app) ?? 0) >= MAU_TARGET;
+}
+
+function isLatestReviewCountMet(app) {
+  return getLatestReviewCount(app) >= REVIEW_COUNT_TARGET;
+}
+
+function isCurrentMonthQualified(app) {
+  return isLatestMauMet(app) && isLatestReviewCountMet(app);
+}
+
+function isNearTarget(app) {
+  if (getPerformanceLabel(app) === "满足" || isCurrentMonthQualified(app)) {
+    return false;
+  }
+
+  return (getNumericMau(app) ?? 0) >= NEAR_TARGET_MAU || getLatestReviewCount(app) >= NEAR_TARGET_REVIEW_COUNT;
+}
+
 function formatPerformanceMau(value) {
   return formatMau(value);
 }
@@ -236,6 +271,15 @@ function matchesPerformanceFilter(app, filterValue) {
   }
   if (filterValue === FILTER_FAILED) {
     return label !== "满足";
+  }
+  if (filterValue === FILTER_MAU_MET_REVIEW_MISSING) {
+    return label !== "满足" && isLatestMauMet(app) && !isLatestReviewCountMet(app);
+  }
+  if (filterValue === FILTER_REVIEW_MET_MAU_MISSING) {
+    return label !== "满足" && isLatestReviewCountMet(app) && !isLatestMauMet(app);
+  }
+  if (filterValue === FILTER_NEAR_TARGET) {
+    return isNearTarget(app);
   }
   return true;
 }

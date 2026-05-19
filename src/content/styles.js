@@ -19,6 +19,11 @@ function injectPageStyles() {
       font-weight: 700;
       white-space: nowrap;
     }
+    .ohos2026-monthly-active-header,
+    .ohos2026-monthly-active-header .t-cell,
+    .ohos2026-monthly-active-cell {
+      text-align: left !important;
+    }
     .ohos2026-performance-filter-wrap {
       position: relative;
       display: inline-flex;
@@ -34,6 +39,7 @@ function injectPageStyles() {
       color: rgba(0, 0, 0, 0.46);
       font-size: 10px;
       line-height: 1;
+      pointer-events: none;
       transform: scaleY(0.78);
     }
     .ohos2026-performance-filter-wrap:hover::after,
@@ -45,8 +51,8 @@ function injectPageStyles() {
     }
     .ohos2026-performance-filter {
       position: absolute;
-      inset: -4px -16px -4px -4px;
-      width: calc(100% + 20px);
+      inset: -8px -24px -8px -8px;
+      width: calc(100% + 32px);
       height: calc(100% + 8px);
       opacity: 0;
       border: 0;

@@ -233,7 +233,6 @@ async function applyPerformanceFilter(filterValue) {
   ensurePerformanceFilterControl(headerRow?.children?.[performanceIndex]);
 
   if (filterState.value === FILTER_ALL) {
-    restoreOriginalRows(table);
     window.location.reload();
     return;
   }

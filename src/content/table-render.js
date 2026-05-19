@@ -23,7 +23,9 @@ function createMonthlyHeaderCell(referenceCell) {
   th.style.background = th.style.background || "#f1f3f5";
   th.style.minWidth = "116px";
   th.style.width = "116px";
+  th.style.textAlign = "left";
   th.innerHTML = `<div class="t-cell">${MONTHLY_ACTIVE_HEADER}</div>`;
+  th.querySelector(".t-cell").style.textAlign = "left";
   return th;
 }
 
@@ -34,7 +36,7 @@ function createMonthlyBodyCell(referenceCell, app) {
   td.style.cssText = referenceCell?.getAttribute("style") || "";
   td.style.padding = td.style.padding || "18px 24px";
   td.style.fontSize = td.style.fontSize || "14px";
-  td.style.textAlign = td.style.textAlign || "left";
+  td.style.textAlign = "left";
   updateMonthlyBodyCell(td, app);
   return td;
 }
@@ -402,7 +404,6 @@ function renderMonthlyActiveColumn() {
     setPageBadge("无法确定本月月活列位置");
     return;
   }
-
   updatePerformanceCells(table);
 
   if (filterState.value !== FILTER_ALL) {
