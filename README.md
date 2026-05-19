@@ -64,3 +64,13 @@ https://developer.huawei.com/consumer/cn/activity/harmonyos-incentive/data-query
 
 - 插件依赖华为开发者页面当前的数据结构。如果页面后续改版，部分功能可能需要更新插件后才能继续使用。
 - 如果账号没有权限、登录失效，或页面本身返回空数据，插件也无法展示对应数据。
+
+## 项目结构
+
+```text
+manifest.json
+src/
+  content/    页面内容脚本，负责读取数据、操作表格、渲染筛选和月活列
+  injected/   注入到页面主环境的脚本，负责捕获华为页面接口返回
+  popup/      插件弹窗页面、样式和交互脚本
+```
