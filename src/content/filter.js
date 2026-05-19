@@ -40,6 +40,17 @@ function createPerformanceFilterSelect() {
   return select;
 }
 
+function openPerformanceFilterSelect(select) {
+  if (!select || select.disabled) {
+    return;
+  }
+
+  select.focus();
+  if (typeof select.showPicker === "function") {
+    select.showPicker();
+  }
+}
+
 function ensurePerformanceFilterControl(headerCell) {
   if (!headerCell) {
     return null;
@@ -54,6 +65,14 @@ function ensurePerformanceFilterControl(headerCell) {
     const wrapper = document.createElement("span");
     wrapper.className = "ohos2026-performance-filter-wrap";
     wrapper.title = "按达标状态筛选全量应用";
+    wrapper.addEventListener("click", (event) => {
+      const selectElement = wrapper.querySelector(".ohos2026-performance-filter");
+      if (event.target !== selectElement) {
+        event.preventDefault();
+        event.stopPropagation();
+        openPerformanceFilterSelect(selectElement);
+      }
+    });
 
     const label = document.createElement("span");
     label.className = "ohos2026-performance-filter-label";

@@ -6,10 +6,6 @@ function maskPrivateValue(value) {
   return isPrivacyModeEnabled() && value ? PRIVACY_MASK : value;
 }
 
-function maskPrivateText(value) {
-  return isPrivacyModeEnabled() ? PRIVACY_MASK : value;
-}
-
 function applyPrivacyMaskToCell(cell, shouldMask) {
   if (!cell) {
     return;

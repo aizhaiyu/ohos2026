@@ -8,9 +8,6 @@ const rewardCountEl = document.querySelector("#rewardCount");
 const hotCountEl = document.querySelector("#hotCount");
 const previewEl = document.querySelector("#preview");
 const fetchAllButton = document.querySelector("#fetchAll");
-const insertColumnButton = document.querySelector("#insertColumn");
-const fillMonthlyButton = document.querySelector("#fillMonthly");
-const scanTablesButton = document.querySelector("#scanTables");
 
 let latestState = null;
 let privacyModeEnabled = false;
@@ -40,8 +37,7 @@ function maskAppRecord(item) {
   return {
     ...item,
     appName: item?.appName ? PRIVACY_MASK : item?.appName,
-    appId: item?.appId ? PRIVACY_MASK : item?.appId,
-    developerName: item?.developerName ? PRIVACY_MASK : item?.developerName
+    appId: item?.appId ? PRIVACY_MASK : item?.appId
   };
 }
 
@@ -131,8 +127,6 @@ async function requestPageState(type = "OHOS2026_GET_STATE") {
   render(cached[STORAGE_KEY] ?? null);
 }
 
-scanTablesButton.addEventListener("click", () => requestPageState("OHOS2026_SCAN_TABLES"));
-
 fetchAllButton.addEventListener("click", async () => {
   fetchAllButton.disabled = true;
   setStatus("正在获取全部应用数据...");
@@ -157,31 +151,6 @@ fetchAllButton.addEventListener("click", async () => {
     setStatus(`获取全部数据失败：${_error?.message || _error}`);
   } finally {
     fetchAllButton.disabled = false;
-  }
-});
-
-insertColumnButton.addEventListener("click", () => requestPageState("OHOS2026_INSERT_MONTHLY_COLUMN"));
-
-fillMonthlyButton.addEventListener("click", async () => {
-  fillMonthlyButton.disabled = true;
-  setStatus("正在调试读取当前页明细，请不要操作页面...");
-  const tab = await getActiveTab();
-
-  try {
-    const response = await chrome.tabs.sendMessage(tab.id, { type: "OHOS2026_FILL_MONTHLY_FROM_MODALS" });
-    if (response?.ok) {
-      render(response.state);
-      setStatus(`已读取 ${response.updatedCount ?? 0} 行当前页明细。`);
-    } else {
-      setStatus(response?.message || "读取失败，请确认当前在目标页面。");
-      if (response?.diagnostics) {
-        previewEl.textContent = JSON.stringify(response.diagnostics, null, 2);
-      }
-    }
-  } catch (_error) {
-    setStatus(`页面脚本尚未就绪，请刷新目标页面后再试：${_error?.message || _error}`);
-  } finally {
-    fillMonthlyButton.disabled = false;
   }
 });
 

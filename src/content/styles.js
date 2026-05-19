@@ -28,35 +28,53 @@ function injectPageStyles() {
       position: relative;
       display: inline-flex;
       align-items: center;
-      gap: 4px;
+      gap: 3px;
       max-width: 100%;
       cursor: pointer;
       vertical-align: middle;
     }
+    .ohos2026-performance-filter-label {
+      display: inline-block;
+      max-width: calc(100% - 18px);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      vertical-align: middle;
+    }
+    .ohos2026-performance-filter {
+      position: static;
+      flex: 0 0 16px;
+      width: 16px;
+      height: 18px;
+      margin: 0;
+      padding: 0;
+      border: 0;
+      appearance: none;
+      -webkit-appearance: none;
+      background: transparent;
+      color: transparent;
+      font-size: 0;
+      line-height: 1;
+      cursor: pointer;
+    }
+    .ohos2026-performance-filter option {
+      color: rgba(0, 0, 0, 0.88);
+      font-size: 13px;
+    }
     .ohos2026-performance-filter-wrap::after {
       content: "▼";
-      display: inline-block;
+      position: absolute;
+      top: 50%;
+      right: 2px;
       color: rgba(0, 0, 0, 0.46);
       font-size: 10px;
       line-height: 1;
       pointer-events: none;
-      transform: scaleY(0.78);
+      transform: translateY(-50%) scaleY(0.78);
     }
     .ohos2026-performance-filter-wrap:hover::after,
     .ohos2026-performance-filter-wrap:focus-within::after {
       color: rgba(0, 0, 0, 0.72);
-    }
-    .ohos2026-performance-filter-label {
-      display: inline-block;
-    }
-    .ohos2026-performance-filter {
-      position: absolute;
-      inset: -8px -24px -8px -8px;
-      width: calc(100% + 32px);
-      height: calc(100% + 8px);
-      opacity: 0;
-      border: 0;
-      cursor: pointer;
     }
     .ohos2026-performance-filter:disabled {
       cursor: wait;

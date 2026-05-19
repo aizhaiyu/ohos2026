@@ -69,13 +69,12 @@ p {
 }
 
 .actions {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 8px;
+  display: block;
   margin-bottom: 14px;
 }
 
 button {
+  width: 100%;
   min-height: 34px;
   border: 0;
   border-radius: 6px;
@@ -92,6 +91,22 @@ button:disabled {
   background: rgba(0, 0, 0, 0.08);
   color: rgba(0, 0, 0, 0.55);
   cursor: default;
+}
+
+.contact {
+  margin: -2px 0 14px;
+  padding: 10px 12px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 8px;
+  background: #fff;
+  color: rgba(0, 0, 0, 0.68);
+  font-size: 13px;
+  line-height: 18px;
+}
+
+.contact strong {
+  color: rgba(0, 0, 0, 0.9);
+  font-weight: 700;
 }
 
 .preview {

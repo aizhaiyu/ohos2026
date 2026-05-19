@@ -19,10 +19,6 @@ function formatStatsMoney(value) {
   }).format(value || 0);
 }
 
-function formatPrivateStatsMoney(value) {
-  return maskPrivateText(formatStatsMoney(value));
-}
-
 function getRewardAmount(app) {
   if (String(app?.appType || "").includes("热门")) {
     return 10000;
@@ -380,12 +376,12 @@ function createSummaryCard(summary) {
 
   const hero = createStatsElement("div", "ohos2026-stats-summary-hero");
   const amount = createStatsElement("div", "ohos2026-stats-summary-amount");
-  amount.append(createStatsElement("div", "ohos2026-stats-summary-label", "预计激励"), createStatsElement("div", "ohos2026-stats-summary-value", formatPrivateStatsMoney(summary.estimatedAmount)));
+  amount.append(createStatsElement("div", "ohos2026-stats-summary-label", "预计激励"), createStatsElement("div", "ohos2026-stats-summary-value", formatStatsMoney(summary.estimatedAmount)));
 
   const stats = createStatsElement("div", "ohos2026-stats-summary-stats");
   stats.append(
-    createSummaryStat("已获激励", formatPrivateStatsMoney(summary.earnedAmount), "is-earned"),
-    createSummaryStat("待达标激励", formatPrivateStatsMoney(summary.onshelfPendingAmount))
+    createSummaryStat("已获激励", formatStatsMoney(summary.earnedAmount), "is-earned"),
+    createSummaryStat("待达标激励", formatStatsMoney(summary.onshelfPendingAmount))
   );
   hero.append(amount, stats);
 
@@ -540,7 +536,7 @@ function createPriorityItem(item) {
   );
 
   const gap = createStatsElement("div", "ohos2026-stats-priority-gap", status.gapText);
-  const reward = createStatsElement("div", "ohos2026-stats-priority-reward", getRewardAmount(app) ? formatPrivateStatsMoney(getRewardAmount(app)) : "");
+  const reward = createStatsElement("div", "ohos2026-stats-priority-reward", getRewardAmount(app) ? formatStatsMoney(getRewardAmount(app)) : "");
   row.append(main, data, gap, reward);
   return row;
 }
@@ -564,7 +560,7 @@ function ensureFullStatsData() {
 function createPrivacyToggle() {
   const label = document.createElement("label");
   label.className = "ohos2026-stats-privacy-toggle";
-  label.title = "隐藏金额、应用名称和 AppID";
+  label.title = "隐藏应用名称和 AppID";
 
   const input = document.createElement("input");
   input.type = "checkbox";
