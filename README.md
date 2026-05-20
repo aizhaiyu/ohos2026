@@ -48,7 +48,7 @@ https://developer.huawei.com/consumer/cn/activity/harmonyos-incentive/data-query
 - 当天再次刷新页面，仍会按本月基准显示同样增量。
 - 进入新的月份后，会使用新月份重新建立基准。
 - 如果接口暂时没有返回月活，新列默认显示 `0`。
-
+![表格增强效果](./assets/1.png)
 ### 有效月活及评分
 
 官方状态为「满足」的应用保持显示「满足」。
@@ -65,7 +65,7 @@ https://developer.huawei.com/consumer/cn/activity/harmonyos-incentive/data-query
 ## 筛选说明
 
 插件会在「有效月活及评分」表头文字后加入下拉箭头。点击表头文字或箭头即可筛选。
-
+![表格增强效果](./assets/2.png)
 支持的筛选项：
 
 - 全部
@@ -88,7 +88,7 @@ https://developer.huawei.com/consumer/cn/activity/harmonyos-incentive/data-query
 ## 激励总览
 
 页面右侧华为原生浮窗上方会显示竖排「激励总览」按钮。点击后打开统计看板。
-
+![表格增强效果](./assets/3.png)
 看板内容：
 
 - 预计激励：当前在架应用按活动类型估算的激励金额。
@@ -121,7 +121,7 @@ https://developer.huawei.com/consumer/cn/activity/harmonyos-incentive/data-query
 
 弹窗只保留「获取全部数据」按钮，用于主动读取当前账号下的全量激励应用数据。
 
-联系方式：微信 `Z13295`。
+有任何问题可以联系：微信 `Z13295`。
 
 ## 数据与登录说明
 
