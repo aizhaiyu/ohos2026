@@ -142,7 +142,7 @@ function normalizeReviewData(performanceData) {
     latestReviewCount: scoreCount,
     latestReviewCountText: new Intl.NumberFormat("zh-CN").format(displayScoreCount),
     latestScore: score,
-    latestReviewText: `${score} / ${new Intl.NumberFormat("zh-CN").format(displayScoreCount)}评`
+    latestReviewText: `${score} / ${new Intl.NumberFormat("zh-CN").format(displayScoreCount)} 评`
   };
 }
 
