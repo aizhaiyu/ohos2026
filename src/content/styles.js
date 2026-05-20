@@ -24,23 +24,32 @@ function injectPageStyles() {
     .ohos2026-monthly-active-cell {
       text-align: left !important;
     }
+    .ohos2026-performance-filter-header {
+      min-width: 138px !important;
+      white-space: nowrap !important;
+    }
+    .ohos2026-performance-filter-header .t-cell {
+      overflow: visible !important;
+      text-overflow: clip !important;
+      white-space: nowrap !important;
+    }
     .ohos2026-performance-filter-wrap {
       position: relative;
       display: inline-flex;
       align-items: center;
       gap: 3px;
-      max-width: 100%;
+      max-width: none;
       cursor: pointer;
       vertical-align: middle;
+      white-space: nowrap;
     }
     .ohos2026-performance-filter-wrap.is-loading {
       cursor: wait;
     }
     .ohos2026-performance-filter-label {
       display: inline-block;
-      max-width: calc(100% - 18px);
-      overflow: hidden;
-      text-overflow: ellipsis;
+      overflow: visible;
+      text-overflow: clip;
       white-space: nowrap;
       vertical-align: middle;
     }

@@ -208,6 +208,7 @@ function ensurePerformanceFilterControl(headerCell) {
     return null;
   }
 
+  headerCell.classList.add("ohos2026-performance-filter-header");
   let wrapper = headerCell.querySelector(".ohos2026-performance-filter-wrap");
   if (!wrapper) {
     const content = headerCell.querySelector(".t-cell") || headerCell;

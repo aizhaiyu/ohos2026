@@ -341,7 +341,7 @@ function expandFixedTableWidth(table) {
   }
 
   const originalWidth = Number.parseFloat(table.dataset.ohosOriginalWidth);
-  table.style.width = `${originalWidth + 116}px`;
+  table.style.width = `${originalWidth + 136}px`;
 }
 
 function syncRowSpan(row, monthlyIndex) {
