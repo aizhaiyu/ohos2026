@@ -33,6 +33,9 @@ function injectPageStyles() {
       cursor: pointer;
       vertical-align: middle;
     }
+    .ohos2026-performance-filter-wrap.is-loading {
+      cursor: wait;
+    }
     .ohos2026-performance-filter-label {
       display: inline-block;
       max-width: calc(100% - 18px);
@@ -41,46 +44,121 @@ function injectPageStyles() {
       white-space: nowrap;
       vertical-align: middle;
     }
-    .ohos2026-performance-filter {
-      position: static;
-      flex: 0 0 16px;
-      width: 16px;
-      height: 18px;
-      margin: 0;
-      padding: 0;
-      border: 0;
-      appearance: none;
-      -webkit-appearance: none;
-      background: transparent;
-      color: transparent;
-      font-size: 0;
-      line-height: 1;
-      cursor: pointer;
-    }
-    .ohos2026-performance-filter option {
-      color: rgba(0, 0, 0, 0.88);
-      font-size: 13px;
-    }
-    .ohos2026-performance-filter-wrap::after {
-      content: "▼";
-      position: absolute;
-      top: 50%;
-      right: 2px;
+    .ohos2026-performance-filter-arrow {
+      flex: 0 0 auto;
       color: rgba(0, 0, 0, 0.46);
       font-size: 10px;
       line-height: 1;
       pointer-events: none;
-      transform: translateY(-50%) scaleY(0.78);
+      transform: scaleY(0.78);
     }
-    .ohos2026-performance-filter-wrap:hover::after,
-    .ohos2026-performance-filter-wrap:focus-within::after {
+    .ohos2026-performance-filter-wrap:hover .ohos2026-performance-filter-arrow,
+    .ohos2026-performance-filter-wrap:focus-within .ohos2026-performance-filter-arrow,
+    .ohos2026-performance-filter-wrap.is-open .ohos2026-performance-filter-arrow {
       color: rgba(0, 0, 0, 0.72);
     }
-    .ohos2026-performance-filter:disabled {
-      cursor: wait;
-    }
-    .ohos2026-performance-filter-wrap.is-loading::after {
+    .ohos2026-performance-filter-wrap.is-loading .ohos2026-performance-filter-arrow {
       color: rgba(0, 0, 0, 0.28);
+    }
+    .ohos2026-performance-menu {
+      position: fixed;
+      top: 0;
+      left: 0;
+      z-index: 9999;
+      width: 184px;
+      max-height: min(420px, calc(100vh - 20px));
+      overflow: auto;
+      overscroll-behavior: contain;
+      padding: 8px;
+      border: 1px solid rgba(0, 0, 0, 0.08);
+      border-radius: 18px;
+      background: #fff;
+      box-shadow: 0 14px 34px rgba(0, 0, 0, 0.16);
+      color: rgba(0, 0, 0, 0.86);
+      cursor: default;
+      font-size: 13px;
+      line-height: 18px;
+    }
+    .ohos2026-performance-menu::before {
+      content: "";
+      position: fixed;
+      top: var(--ohos2026-performance-menu-arrow-top, -999px);
+      left: var(--ohos2026-performance-menu-arrow-left, -999px);
+      width: 16px;
+      height: 16px;
+      border-radius: 3px;
+      background: #fff;
+      box-shadow: -3px -3px 8px rgba(0, 0, 0, 0.02);
+      pointer-events: none;
+      transform: rotate(45deg);
+    }
+    .ohos2026-performance-menu[hidden] {
+      display: none;
+    }
+    .ohos2026-performance-menu::-webkit-scrollbar {
+      width: 6px;
+    }
+    .ohos2026-performance-menu::-webkit-scrollbar-track {
+      margin: 14px 0;
+      background: transparent;
+    }
+    .ohos2026-performance-menu::-webkit-scrollbar-thumb {
+      min-height: 28px;
+      border-radius: 999px;
+      background: rgba(0, 0, 0, 0.14);
+    }
+    .ohos2026-performance-menu:hover::-webkit-scrollbar-thumb {
+      background: rgba(0, 0, 0, 0.24);
+    }
+    .ohos2026-performance-menu-section + .ohos2026-performance-menu-section {
+      margin-top: 7px;
+      padding-top: 7px;
+      border-top: 1px solid rgba(0, 0, 0, 0.06);
+    }
+    .ohos2026-performance-menu-title {
+      padding: 4px 8px;
+      color: rgba(0, 0, 0, 0.42);
+      font-size: 12px;
+      font-weight: 400;
+      line-height: 16px;
+    }
+    .ohos2026-performance-menu-item {
+      position: relative;
+      display: block;
+      width: 100%;
+      min-height: 30px;
+      padding: 6px 26px 6px 8px;
+      border: 0;
+      border-radius: 6px;
+      background: transparent;
+      color: rgba(0, 0, 0, 0.78);
+      cursor: pointer;
+      font: inherit;
+      text-align: left;
+      white-space: nowrap;
+    }
+    .ohos2026-performance-menu-item:hover,
+    .ohos2026-performance-menu-item:focus-visible {
+      background: rgba(10, 89, 247, 0.06);
+      color: #0a59f7;
+      outline: none;
+    }
+    .ohos2026-performance-menu-item.is-active {
+      color: #0a59f7;
+      background: rgba(10, 89, 247, 0.08);
+    }
+    .ohos2026-performance-menu-item.is-active::after {
+      content: "✓";
+      position: absolute;
+      top: 50%;
+      right: 9px;
+      color: #0a59f7;
+      font-size: 12px;
+      transform: translateY(-50%);
+    }
+    .ohos2026-performance-menu-item:disabled {
+      cursor: wait;
+      opacity: 0.62;
     }
     .ohos2026-filter-summary {
       display: none;

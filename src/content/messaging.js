@@ -26,6 +26,7 @@ function handleGwResponse(messageEvent) {
   const result = detail.response?.result;
   const page = Number(detail.request?.current || 1);
   const pageSize = Number(detail.request?.pageSize || 10);
+  const total = getRewardTotalFromResult(result);
 
   state.rawResponses.push({
     serviceName: detail.serviceName,
@@ -52,10 +53,10 @@ function handleGwResponse(messageEvent) {
     renderMonthlyActiveColumn();
     refreshActiveFilterRows();
     persist();
+    filterState.hasFetchedAll = total > 0 && state.rewardApps.length >= total;
 
     if (pending) {
       window.clearTimeout(pending.timeoutId);
-      const total = getRewardTotalFromResult(result);
       const loaded = state.rewardApps.length;
       if (!total || loaded >= total || pageSize >= total) {
         pendingFetchAllRequests.delete(detail.clientRequestId);

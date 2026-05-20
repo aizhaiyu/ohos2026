@@ -37,16 +37,6 @@ function isOnshelfApp(app) {
   return String(app?.isOnshelf || "").trim() === "在架";
 }
 
-function getLatestScoreNumber(app) {
-  const value = app?.latestScore;
-  if (value == null || value === "" || value === "暂无" || value === "不涉及") {
-    return null;
-  }
-
-  const number = Number(String(value).replace(/[^\d.-]/g, ""));
-  return Number.isFinite(number) ? number : null;
-}
-
 function isLatestScoreMet(app) {
   const score = getLatestScoreNumber(app);
   return score != null && score > 3;

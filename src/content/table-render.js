@@ -410,9 +410,9 @@ function renderMonthlyActiveColumn() {
   }
   updatePerformanceCells(table);
 
-  if (filterState.value !== FILTER_ALL) {
+  if (shouldUsePerformanceView()) {
     updateFilteredRowsMonthlyCells(table);
-    setPageBadge("筛选结果已同步本月月活列");
+    setPageBadge("全量临时视图已同步本月月活列");
     return;
   }
 

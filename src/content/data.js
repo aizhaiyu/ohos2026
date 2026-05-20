@@ -231,6 +231,16 @@ function getLatestReviewCount(app) {
   return value ?? 0;
 }
 
+function getLatestScoreNumber(app) {
+  const value = app?.latestScore;
+  if (value == null || value === "" || value === "暂无" || value === "不涉及") {
+    return null;
+  }
+
+  const number = Number(String(value).replace(/[^\d.-]/g, ""));
+  return Number.isFinite(number) ? number : null;
+}
+
 function isLatestMauMet(app) {
   return (getNumericMau(app) ?? 0) >= MAU_TARGET;
 }
@@ -288,13 +298,17 @@ function getFilterLabel(filterValue) {
   return PERFORMANCE_FILTER_OPTIONS.find((option) => option.value === filterValue)?.label || "全部";
 }
 
+function getSortLabel(sortValue) {
+  return PERFORMANCE_SORT_OPTIONS.find((option) => option.value === sortValue)?.label || "默认顺序";
+}
+
 function getHeaderLabel(cell) {
   if (!cell) {
     return "";
   }
 
   const clone = cell.cloneNode(true);
-  clone.querySelectorAll(".ohos2026-performance-filter").forEach((element) => element.remove());
+  clone.querySelectorAll(".ohos2026-performance-menu, .ohos2026-performance-filter-arrow").forEach((element) => element.remove());
   clone.querySelectorAll(".ohos2026-performance-filter-wrap").forEach((element) => {
     element.replaceWith(element.querySelector(".ohos2026-performance-filter-label")?.textContent || "");
   });

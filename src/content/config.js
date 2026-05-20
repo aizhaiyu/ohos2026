@@ -54,6 +54,13 @@ var FILTER_FAILED = "failed";
 var FILTER_MAU_MET_REVIEW_MISSING = "mau-met-review-missing";
 var FILTER_REVIEW_MET_MAU_MISSING = "review-met-mau-missing";
 var FILTER_NEAR_TARGET = "near-target";
+var SORT_DEFAULT = "default";
+var SORT_MAU_DESC = "mau-desc";
+var SORT_MAU_ASC = "mau-asc";
+var SORT_REVIEW_DESC = "review-desc";
+var SORT_REVIEW_ASC = "review-asc";
+var SORT_SCORE_DESC = "score-desc";
+var SORT_SCORE_ASC = "score-asc";
 var MAU_TARGET = 400;
 var REVIEW_COUNT_TARGET = 10;
 var NEAR_TARGET_MAU = 300;
@@ -65,6 +72,15 @@ var PERFORMANCE_FILTER_OPTIONS = [
   { value: FILTER_MAU_MET_REVIEW_MISSING, label: "月活够，评分不足" },
   { value: FILTER_REVIEW_MET_MAU_MISSING, label: "评分够，月活不足" },
   { value: FILTER_NEAR_TARGET, label: "接近达标" }
+];
+var PERFORMANCE_SORT_OPTIONS = [
+  { value: SORT_DEFAULT, label: "默认顺序" },
+  { value: SORT_MAU_DESC, label: "月活 高到低" },
+  { value: SORT_MAU_ASC, label: "月活 低到高" },
+  { value: SORT_REVIEW_DESC, label: "评论数 高到低" },
+  { value: SORT_REVIEW_ASC, label: "评论数 低到高" },
+  { value: SORT_SCORE_DESC, label: "评分 高到低" },
+  { value: SORT_SCORE_ASC, label: "评分 低到高" }
 ];
 
 var state = {
@@ -82,9 +98,14 @@ var mauSnapshotLoaded = false;
 var pendingMauSnapshotSave = false;
 var filterState = {
   value: FILTER_ALL,
+  sortValue: SORT_DEFAULT,
   requestId: 0,
   originalRows: null,
-  renderingFilteredRows: false
+  renderingFilteredRows: false,
+  viewActive: false,
+  hasFetchedAll: false
 };
+var activePerformanceMenuAnchor = null;
+var performanceMenuPositionRaf = 0;
 var pendingFetchAllRequests = new Map();
 var privacyModeEnabled = false;

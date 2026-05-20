@@ -18,37 +18,189 @@ function findPerformanceColumnIndex(table) {
   return getColumnIndex(headers, isPerformanceHeaderText);
 }
 
-function createPerformanceFilterSelect() {
-  const select = document.createElement("select");
-  select.className = "ohos2026-performance-filter";
-  select.title = "按达标状态筛选全量应用";
-  select.setAttribute("aria-label", "按达标状态筛选全量应用");
+function createPerformanceMenuItem(config) {
+  const button = document.createElement("button");
+  button.type = "button";
+  button.className = "ohos2026-performance-menu-item";
+  button.dataset.ohos2026Type = config.type;
+  button.dataset.ohos2026Value = config.value;
+  button.textContent = config.label;
+  button.addEventListener("click", (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    if (button.disabled) {
+      return;
+    }
 
-  for (const optionConfig of PERFORMANCE_FILTER_OPTIONS) {
-    const option = document.createElement("option");
-    option.value = optionConfig.value;
-    option.textContent = optionConfig.label;
-    select.appendChild(option);
-  }
-
-  select.value = filterState.value;
-  select.addEventListener("click", (event) => event.stopPropagation());
-  select.addEventListener("mousedown", (event) => event.stopPropagation());
-  select.addEventListener("change", () => {
-    applyPerformanceFilter(select.value);
+    closePerformanceMenu();
+    if (config.type === "action" && config.value === "reload") {
+      window.location.reload();
+      return;
+    }
+    if (config.type === "filter") {
+      applyPerformanceView({ filterValue: config.value });
+      return;
+    }
+    if (config.type === "sort") {
+      applyPerformanceView({ sortValue: config.value });
+    }
   });
-  return select;
+  return button;
 }
 
-function openPerformanceFilterSelect(select) {
-  if (!select || select.disabled) {
+function createPerformanceMenuSection(title, items, type) {
+  const section = document.createElement("div");
+  section.className = "ohos2026-performance-menu-section";
+
+  const titleElement = document.createElement("div");
+  titleElement.className = "ohos2026-performance-menu-title";
+  titleElement.textContent = title;
+  section.appendChild(titleElement);
+
+  items.forEach((item) => section.appendChild(createPerformanceMenuItem({ ...item, type })));
+  return section;
+}
+
+function createPerformanceMenu() {
+  const menu = document.createElement("div");
+  menu.className = "ohos2026-performance-menu";
+  menu.setAttribute("role", "menu");
+  menu.hidden = true;
+  menu.addEventListener("click", (event) => event.stopPropagation());
+  menu.append(
+    createPerformanceMenuSection("筛选", PERFORMANCE_FILTER_OPTIONS, "filter"),
+    createPerformanceMenuSection("排序", PERFORMANCE_SORT_OPTIONS, "sort"),
+    createPerformanceMenuSection("操作", [{ value: "reload", label: "恢复页面原样" }], "action")
+  );
+  return menu;
+}
+
+function closePerformanceMenu() {
+  activePerformanceMenuAnchor = null;
+  if (performanceMenuPositionRaf) {
+    window.cancelAnimationFrame(performanceMenuPositionRaf);
+    performanceMenuPositionRaf = 0;
+  }
+  document.querySelectorAll(".ohos2026-performance-filter-wrap.is-open").forEach((wrapper) => {
+    wrapper.classList.remove("is-open");
+  });
+  document.querySelectorAll(".ohos2026-performance-menu").forEach((menu) => {
+    menu.hidden = true;
+  });
+  document.removeEventListener("click", closePerformanceMenu);
+  document.removeEventListener("keydown", closePerformanceMenuOnEscape);
+  window.removeEventListener("scroll", schedulePerformanceMenuPosition, true);
+  window.removeEventListener("resize", schedulePerformanceMenuPosition);
+}
+
+function closePerformanceMenuOnEscape(event) {
+  if (event.key === "Escape") {
+    closePerformanceMenu();
+  }
+}
+
+function updatePerformanceMenuState(wrapper) {
+  if (!wrapper) {
     return;
   }
 
-  select.focus();
-  if (typeof select.showPicker === "function") {
-    select.showPicker();
+  getPerformanceMenu().querySelectorAll(".ohos2026-performance-menu-item").forEach((item) => {
+    const type = item.dataset.ohos2026Type;
+    const value = item.dataset.ohos2026Value;
+    const active = (type === "filter" && value === filterState.value) || (type === "sort" && value === filterState.sortValue);
+    item.classList.toggle("is-active", active);
+  });
+}
+
+function getPerformanceMenu() {
+  let menu = document.body.querySelector(":scope > .ohos2026-performance-menu");
+  if (!menu) {
+    menu = createPerformanceMenu();
+    document.body.appendChild(menu);
   }
+  return menu;
+}
+
+function isUsablePerformanceAnchor(wrapper) {
+  if (!wrapper || !document.documentElement.contains(wrapper)) {
+    return false;
+  }
+
+  const rect = wrapper.getBoundingClientRect();
+  return rect.width > 0 && rect.height > 0 && rect.bottom > 0 && rect.top < window.innerHeight;
+}
+
+function positionPerformanceMenu(wrapper, menu) {
+  if (!isUsablePerformanceAnchor(wrapper)) {
+    closePerformanceMenu();
+    return;
+  }
+
+  const rect = wrapper.getBoundingClientRect();
+  const width = 184;
+  const gap = 8;
+  const viewportPadding = 10;
+  const preferredMenuHeight = Math.min(menu.scrollHeight || menu.offsetHeight || 420, 420);
+  const spaceBelow = Math.max(0, window.innerHeight - rect.bottom - gap - viewportPadding);
+  const spaceAbove = Math.max(0, rect.top - gap - viewportPadding);
+  const minUsefulHeight = Math.min(180, preferredMenuHeight);
+  const placeBelow = spaceBelow >= minUsefulHeight || spaceBelow >= spaceAbove;
+  const availableHeight = placeBelow ? spaceBelow : spaceAbove;
+  const menuHeight = Math.max(80, Math.min(preferredMenuHeight, availableHeight || window.innerHeight - viewportPadding * 2));
+  const top = placeBelow ? rect.bottom + gap : Math.max(viewportPadding, rect.top - menuHeight - gap);
+  const left = Math.min(Math.max(viewportPadding, rect.left), window.innerWidth - width - viewportPadding);
+  const anchorCenter = rect.left + rect.width / 2;
+  const arrowLeft = Math.min(Math.max(left + 18, anchorCenter - 8), left + width - 34);
+  const arrowTop = placeBelow ? top - 7 : top + menuHeight - 9;
+
+  menu.style.top = `${top}px`;
+  menu.style.left = `${left}px`;
+  menu.style.maxHeight = `${menuHeight}px`;
+  menu.style.setProperty("--ohos2026-performance-menu-arrow-left", `${arrowLeft}px`);
+  menu.style.setProperty("--ohos2026-performance-menu-arrow-top", `${arrowTop}px`);
+}
+
+function schedulePerformanceMenuPosition(event) {
+  const menu = document.body.querySelector(":scope > .ohos2026-performance-menu");
+  if (!activePerformanceMenuAnchor || !menu || menu.hidden) {
+    return;
+  }
+
+  if (event?.target && menu.contains(event.target)) {
+    return;
+  }
+
+  if (performanceMenuPositionRaf) {
+    return;
+  }
+
+  performanceMenuPositionRaf = window.requestAnimationFrame(() => {
+    performanceMenuPositionRaf = 0;
+    positionPerformanceMenu(activePerformanceMenuAnchor, menu);
+  });
+}
+
+function openPerformanceMenu(wrapper) {
+  if (!wrapper || wrapper.classList.contains("is-loading")) {
+    return;
+  }
+
+  const menu = getPerformanceMenu();
+  const shouldOpen = !wrapper.classList.contains("is-open");
+  closePerformanceMenu();
+  if (!shouldOpen) {
+    return;
+  }
+
+  updatePerformanceMenuState(wrapper);
+  wrapper.classList.add("is-open");
+  activePerformanceMenuAnchor = wrapper;
+  menu.hidden = false;
+  positionPerformanceMenu(wrapper, menu);
+  document.addEventListener("click", closePerformanceMenu);
+  document.addEventListener("keydown", closePerformanceMenuOnEscape);
+  window.addEventListener("scroll", schedulePerformanceMenuPosition, true);
+  window.addEventListener("resize", schedulePerformanceMenuPosition);
 }
 
 function ensurePerformanceFilterControl(headerCell) {
@@ -56,43 +208,43 @@ function ensurePerformanceFilterControl(headerCell) {
     return null;
   }
 
-  let select = headerCell.querySelector(".ohos2026-performance-filter");
-  if (!select) {
+  let wrapper = headerCell.querySelector(".ohos2026-performance-filter-wrap");
+  if (!wrapper) {
     const content = headerCell.querySelector(".t-cell") || headerCell;
     const originalText = getHeaderLabel(headerCell);
     content.textContent = "";
 
-    const wrapper = document.createElement("span");
+    wrapper = document.createElement("span");
     wrapper.className = "ohos2026-performance-filter-wrap";
-    wrapper.title = "按达标状态筛选全量应用";
+    wrapper.title = "筛选或排序全量应用";
     wrapper.addEventListener("click", (event) => {
-      const selectElement = wrapper.querySelector(".ohos2026-performance-filter");
-      if (event.target !== selectElement) {
-        event.preventDefault();
-        event.stopPropagation();
-        openPerformanceFilterSelect(selectElement);
-      }
+      event.preventDefault();
+      event.stopPropagation();
+      openPerformanceMenu(wrapper);
     });
 
     const label = document.createElement("span");
     label.className = "ohos2026-performance-filter-label";
     label.textContent = originalText || "有效月活及评分";
 
-    select = createPerformanceFilterSelect();
-    wrapper.append(label, select);
+    const arrow = document.createElement("span");
+    arrow.className = "ohos2026-performance-filter-arrow";
+    arrow.textContent = "▼";
+
+    wrapper.append(label, arrow);
     content.appendChild(wrapper);
   }
-  select.dataset.ohos2026ColumnIndex = String(Array.from(headerCell.parentElement?.children || []).indexOf(headerCell));
-  if (select.value !== filterState.value) {
-    select.value = filterState.value;
-  }
-  return select;
+  wrapper.dataset.ohos2026ColumnIndex = String(Array.from(headerCell.parentElement?.children || []).indexOf(headerCell));
+  updatePerformanceMenuState(wrapper);
+  return wrapper;
 }
 
 function setPerformanceFilterLoading(isLoading) {
-  document.querySelectorAll(".ohos2026-performance-filter").forEach((select) => {
-    select.disabled = isLoading;
-    select.closest(".ohos2026-performance-filter-wrap")?.classList.toggle("is-loading", isLoading);
+  document.querySelectorAll(".ohos2026-performance-filter-wrap").forEach((wrapper) => {
+    wrapper.classList.toggle("is-loading", isLoading);
+  });
+  getPerformanceMenu().querySelectorAll(".ohos2026-performance-menu-item").forEach((button) => {
+    button.disabled = isLoading;
   });
 }
 
@@ -133,7 +285,7 @@ function updateFilterSummary(table, message = "", isError = false) {
   summary.classList.toggle("is-error", Boolean(isError));
 }
 
-function createFilterSummaryContent(filterValue, matchedCount, totalCount) {
+function createFilterSummaryContent(filterValue, sortValue, matchedCount, totalCount) {
   const fragment = document.createDocumentFragment();
   fragment.append("筛选：", getFilterLabel(filterValue), " ");
 
@@ -141,7 +293,11 @@ function createFilterSummaryContent(filterValue, matchedCount, totalCount) {
   count.className = "ohos2026-filter-summary-count";
   count.textContent = `${matchedCount} / ${totalCount}`;
   fragment.appendChild(count);
-  fragment.append("，已临时显示全量筛选结果");
+
+  if (sortValue !== SORT_DEFAULT) {
+    fragment.append(" · 排序：", getSortLabel(sortValue));
+  }
+  fragment.append("，已临时显示全量结果");
   return fragment;
 }
 
@@ -197,7 +353,61 @@ function restoreOriginalRows(table) {
   renderMonthlyActiveColumn();
 }
 
-function renderFilteredRows(table, apps, filterValue) {
+function getSortNumberValue(app, sortValue) {
+  if (sortValue === SORT_MAU_DESC || sortValue === SORT_MAU_ASC) {
+    return getNumericMau(app);
+  }
+  if (sortValue === SORT_REVIEW_DESC || sortValue === SORT_REVIEW_ASC) {
+    return getLatestReviewCount(app);
+  }
+  if (sortValue === SORT_SCORE_DESC || sortValue === SORT_SCORE_ASC) {
+    return getLatestScoreNumber(app);
+  }
+  return null;
+}
+
+function compareAppIdentity(left, right) {
+  const leftKey = String(left?.appName || left?.appId || "");
+  const rightKey = String(right?.appName || right?.appId || "");
+  return leftKey.localeCompare(rightKey, "zh-Hans-CN");
+}
+
+function sortPerformanceApps(apps, sortValue) {
+  const direction = String(sortValue).endsWith("-asc") ? 1 : -1;
+  if (sortValue === SORT_DEFAULT) {
+    return apps;
+  }
+
+  return [...apps].sort((left, right) => {
+    const leftValue = getSortNumberValue(left, sortValue);
+    const rightValue = getSortNumberValue(right, sortValue);
+    const leftMissing = leftValue == null || Number.isNaN(leftValue);
+    const rightMissing = rightValue == null || Number.isNaN(rightValue);
+    if (leftMissing && rightMissing) {
+      return compareAppIdentity(left, right);
+    }
+    if (leftMissing) {
+      return 1;
+    }
+    if (rightMissing) {
+      return -1;
+    }
+    if (leftValue !== rightValue) {
+      return (leftValue - rightValue) * direction;
+    }
+    return compareAppIdentity(left, right);
+  });
+}
+
+function getPerformanceViewApps(apps) {
+  return sortPerformanceApps(apps.filter((app) => matchesPerformanceFilter(app, filterState.value)), filterState.sortValue);
+}
+
+function shouldUsePerformanceView() {
+  return filterState.viewActive || filterState.value !== FILTER_ALL || filterState.sortValue !== SORT_DEFAULT;
+}
+
+function renderPerformanceViewRows(table, apps) {
   const tbody = table?.querySelector("tbody");
   const headerRow = table?.querySelector("thead tr");
   if (!tbody || !headerRow) {
@@ -206,8 +416,8 @@ function renderFilteredRows(table, apps, filterValue) {
 
   snapshotOriginalRows(tbody);
   const columnOrder = Array.from(headerRow.children).map(getHeaderLabel);
-  const filteredApps = apps.filter((app) => matchesPerformanceFilter(app, filterValue));
-  const rows = filteredApps.map((app) => createFilteredRow(app, table, headerRow, columnOrder));
+  const viewApps = getPerformanceViewApps(apps);
+  const rows = viewApps.map((app) => createFilteredRow(app, table, headerRow, columnOrder));
 
   if (rows.length === 0) {
     const row = document.createElement("tr");
@@ -215,7 +425,7 @@ function renderFilteredRows(table, apps, filterValue) {
     const cell = document.createElement("td");
     cell.className = "ohos2026-filtered-empty";
     cell.colSpan = Math.max(columnOrder.length, 1);
-    cell.textContent = "没有符合筛选条件的应用";
+    cell.textContent = "没有符合条件的应用";
     row.appendChild(cell);
     rows.push(row);
   }
@@ -224,11 +434,12 @@ function renderFilteredRows(table, apps, filterValue) {
   tbody.replaceChildren(...rows);
   filterState.renderingFilteredRows = false;
   setRewardPaginationHidden(table, true);
-  updateFilterSummary(table, createFilterSummaryContent(filterValue, filteredApps.length, apps.length));
+  updateFilterSummary(table, createFilterSummaryContent(filterState.value, filterState.sortValue, viewApps.length, apps.length));
+  applyPrivacyMaskToTable(table);
 }
 
 function refreshActiveFilterRows() {
-  if (filterState.value === FILTER_ALL || filterState.renderingFilteredRows) {
+  if (!shouldUsePerformanceView() || filterState.renderingFilteredRows) {
     return;
   }
 
@@ -237,33 +448,58 @@ function refreshActiveFilterRows() {
     return;
   }
 
-  renderFilteredRows(table, state.rewardApps, filterState.value);
+  renderPerformanceViewRows(table, state.rewardApps);
 }
 
-async function applyPerformanceFilter(filterValue) {
+async function ensureFullRewardAppsForPerformanceView(table, requestId) {
+  if (filterState.hasFetchedAll) {
+    return { ok: true, state };
+  }
+
+  updateFilterSummary(table, `正在获取全部应用数据...`);
+  const response = await fetchAllRewardApps();
+  if (filterState.requestId !== requestId) {
+    return { ok: false, ignored: true };
+  }
+  if (response?.ok) {
+    filterState.hasFetchedAll = true;
+  }
+  return response;
+}
+
+async function applyPerformanceView({ filterValue, sortValue } = {}) {
   const table = findRewardTable();
   if (!table) {
     return;
   }
 
-  filterState.value = filterValue || FILTER_ALL;
+  if (filterValue != null) {
+    filterState.value = filterValue || FILTER_ALL;
+  }
+  if (sortValue != null) {
+    filterState.sortValue = sortValue || SORT_DEFAULT;
+  }
   const headerRow = table.querySelector("thead tr");
   const performanceIndex = findPerformanceColumnIndex(table);
-  ensurePerformanceFilterControl(headerRow?.children?.[performanceIndex]);
+  const wrapper = ensurePerformanceFilterControl(headerRow?.children?.[performanceIndex]);
+  const shouldRestoreOriginal = filterState.value === FILTER_ALL && filterState.sortValue === SORT_DEFAULT;
 
-  if (filterState.value === FILTER_ALL) {
-    window.location.reload();
+  if (shouldRestoreOriginal) {
+    filterState.viewActive = false;
+    restoreOriginalRows(table);
+    updatePerformanceMenuState(wrapper);
+    persist();
     return;
   }
 
+  filterState.viewActive = true;
   const requestId = filterState.requestId + 1;
   filterState.requestId = requestId;
   setPerformanceFilterLoading(true);
-  updateFilterSummary(table, `正在获取全部应用数据...`);
 
   try {
-    const response = await fetchAllRewardApps();
-    if (filterState.requestId !== requestId || filterState.value === FILTER_ALL) {
+    const response = await ensureFullRewardAppsForPerformanceView(table, requestId);
+    if (filterState.requestId !== requestId || response?.ignored) {
       return;
     }
 
@@ -272,15 +508,20 @@ async function applyPerformanceFilter(filterValue) {
       return;
     }
 
-    renderFilteredRows(table, state.rewardApps, filterState.value);
+    renderPerformanceViewRows(table, state.rewardApps);
     persist();
   } catch (error) {
     if (filterState.requestId === requestId) {
-      updateFilterSummary(table, `筛选失败：${error?.message || error}`, true);
+      updateFilterSummary(table, `处理失败：${error?.message || error}`, true);
     }
   } finally {
     if (filterState.requestId === requestId) {
       setPerformanceFilterLoading(false);
+      updatePerformanceMenuState(wrapper);
     }
   }
+}
+
+async function applyPerformanceFilter(filterValue) {
+  await applyPerformanceView({ filterValue });
 }
