@@ -323,6 +323,16 @@ function dedupeBy(items, keyFn) {
   return Array.from(map.values());
 }
 
+function getRewardAppIdentity(item) {
+  return String(item?.appId || item?.appName || "").trim();
+}
+
+function mergeRewardApps(existing, incoming) {
+  return dedupeBy([...(Array.isArray(existing) ? existing : []), ...(Array.isArray(incoming) ? incoming : [])], (item) => {
+    return getRewardAppIdentity(item) || JSON.stringify(item);
+  });
+}
+
 function upsertByPage(existing, incoming, page, keyFn) {
   const withoutPage = existing.filter((item) => item.__page !== page);
   const tagged = incoming.map((item) => ({ ...item, __page: page }));

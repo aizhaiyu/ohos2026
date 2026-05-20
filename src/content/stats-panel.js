@@ -37,6 +37,10 @@ function isOnshelfApp(app) {
   return String(app?.isOnshelf || "").trim() === "在架";
 }
 
+function getUniqueStatsApps(apps) {
+  return mergeRewardApps([], apps);
+}
+
 function isLatestScoreMet(app) {
   const score = getLatestScoreNumber(app);
   return score != null && score > 3;
@@ -569,7 +573,7 @@ function renderStatsPanel() {
     return;
   }
 
-  const apps = Array.isArray(state.rewardApps) ? state.rewardApps : [];
+  const apps = getUniqueStatsApps(Array.isArray(state.rewardApps) ? state.rewardApps : []);
   const summary = getStatsSummary(apps);
   const header = createStatsElement("div", "ohos2026-stats-header");
   const titleWrap = createStatsElement("div", "");

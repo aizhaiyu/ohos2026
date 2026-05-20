@@ -1,4 +1,5 @@
 function persist() {
+  state.rewardApps = mergeRewardApps([], state.rewardApps);
   state.lastUpdated = new Date().toISOString();
   state.url = location.href;
   renderMonthlyActiveColumn();
@@ -46,9 +47,9 @@ function handleGwResponse(messageEvent) {
     const apps = normalizeRewardApps(result);
     prepareMauComparison();
     if (pageSize >= 100) {
-      state.rewardApps = page === 1 ? apps : dedupeBy([...state.rewardApps, ...apps], (item) => item.appId || item.appName);
+      state.rewardApps = page === 1 && pending ? apps : mergeRewardApps(state.rewardApps, apps);
     } else {
-      state.rewardApps = upsertByPage(state.rewardApps, apps, page, (item) => `${item.appId || item.appName}:${item.__page}`);
+      state.rewardApps = mergeRewardApps(state.rewardApps, apps);
     }
     renderMonthlyActiveColumn();
     refreshActiveFilterRows();
