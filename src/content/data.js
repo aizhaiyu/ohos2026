@@ -387,7 +387,7 @@ function normalizeStoredMauRecord(record, fallbackMonthKey = "") {
   }
 
   const mau = Number(record);
-  return Number.isFinite(mau) && fallbackMonthKey ? { mau, monthKey: fallbackMonthKey } : null;
+  return Number.isFinite(mau) ? { mau, monthKey: getMauMonthKey(fallbackMonthKey) } : null;
 }
 
 function normalizeStoredMauMap(apps, fallbackMonthKey = "") {
@@ -406,18 +406,13 @@ function normalizeStoredMauMap(apps, fallbackMonthKey = "") {
 }
 
 function getStoredMauRecord(app, sourceMap) {
-  const currentMonthKey = getAppMauMonthKey(app);
-  if (!currentMonthKey) {
-    return null;
-  }
-
   const appId = String(app?.appId || "").trim();
   const appName = String(app?.appName || "").trim();
   const records = [appId ? sourceMap[appId] : null, appName ? sourceMap[appName] : null];
 
   for (const record of records) {
     const normalizedRecord = normalizeStoredMauRecord(record);
-    if (normalizedRecord?.monthKey === currentMonthKey) {
+    if (normalizedRecord) {
       return normalizedRecord;
     }
   }
@@ -429,14 +424,14 @@ function getPreviousMau(app) {
   return getStoredMauRecord(app, previousMauByApp)?.mau ?? null;
 }
 
-function getBaselineMauRecord(app) {
+function getCurrentMauRecord(app) {
   const currentMonthKey = getAppMauMonthKey(app);
   const currentMau = getNumericMau(app);
   if (!currentMonthKey || currentMau == null) {
     return null;
   }
 
-  return getStoredMauRecord(app, lastSavedMauByApp) || {
+  return {
     mau: currentMau,
     monthKey: currentMonthKey
   };

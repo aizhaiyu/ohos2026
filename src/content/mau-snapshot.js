@@ -2,7 +2,7 @@ function buildCurrentMauSnapshot() {
   const apps = { ...lastSavedMauByApp };
   for (const app of state.rewardApps) {
     const key = getAppKey(app);
-    const record = getBaselineMauRecord(app);
+    const record = getCurrentMauRecord(app);
     if (key && record) {
       apps[key] = record;
     }

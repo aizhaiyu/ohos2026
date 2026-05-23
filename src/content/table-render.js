@@ -312,7 +312,7 @@ function updateMonthlyBodyCell(cell, app) {
       cell.appendChild(deltaElement);
     }
     deltaElement.textContent = `+${new Intl.NumberFormat("zh-CN").format(delta)}`;
-    cell.title = `${cell.title}，较本月基准 +${new Intl.NumberFormat("zh-CN").format(delta)}`;
+    cell.title = `${cell.title}，较上次刷新 +${new Intl.NumberFormat("zh-CN").format(delta)}`;
   } else if (deltaElement) {
     deltaElement.remove();
   }
