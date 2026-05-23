@@ -8,7 +8,7 @@ if (location.pathname.includes(PAGE_URL_PATTERN)) {
   window.postMessage({ source: MESSAGE_SOURCE, type: REQUEST_REPLAY_MESSAGE }, window.location.origin);
 
   const runInitialRender = () => {
-    setTimeout(persist, 500);
+    setTimeout(persistStateOnly, 500);
     setTimeout(renderMonthlyActiveColumn, 1000);
     setTimeout(renderMonthlyActiveColumn, 2500);
     setTimeout(renderMonthlyActiveColumn, 5000);

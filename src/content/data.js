@@ -383,11 +383,18 @@ function normalizeStoredMauRecord(record, fallbackMonthKey = "") {
   if (typeof record === "object") {
     const mau = Number(record.mau);
     const monthKey = getMauMonthKey(record.monthKey || record.month || fallbackMonthKey);
-    return Number.isFinite(mau) && monthKey ? { mau, monthKey } : null;
+    const delta = Number(record.delta);
+    return Number.isFinite(mau)
+      ? {
+          mau,
+          monthKey,
+          delta: Number.isFinite(delta) && delta > 0 ? delta : 0
+        }
+      : null;
   }
 
   const mau = Number(record);
-  return Number.isFinite(mau) ? { mau, monthKey: getMauMonthKey(fallbackMonthKey) } : null;
+  return Number.isFinite(mau) ? { mau, monthKey: getMauMonthKey(fallbackMonthKey), delta: 0 } : null;
 }
 
 function normalizeStoredMauMap(apps, fallbackMonthKey = "") {
@@ -420,8 +427,22 @@ function getStoredMauRecord(app, sourceMap) {
   return null;
 }
 
-function getPreviousMau(app) {
-  return getStoredMauRecord(app, previousMauByApp)?.mau ?? null;
+function getMauDelta(app) {
+  const currentMau = getNumericMau(app);
+  const previousRecord = getStoredMauRecord(app, comparisonMauByApp);
+  if (currentMau == null || !previousRecord) {
+    return 0;
+  }
+
+  if (currentMau > previousRecord.mau) {
+    return currentMau - previousRecord.mau;
+  }
+
+  if (currentMau === previousRecord.mau && previousRecord.delta > 0) {
+    return previousRecord.delta;
+  }
+
+  return 0;
 }
 
 function getCurrentMauRecord(app) {
@@ -433,6 +454,7 @@ function getCurrentMauRecord(app) {
 
   return {
     mau: currentMau,
-    monthKey: currentMonthKey
+    monthKey: currentMonthKey,
+    delta: getMauDelta(app)
   };
 }

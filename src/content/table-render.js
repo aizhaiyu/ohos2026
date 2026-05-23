@@ -300,9 +300,7 @@ function updateMonthlyBodyCell(cell, app) {
     valueElement.textContent = value;
   }
 
-  const currentMau = getNumericMau(app);
-  const previousMau = getPreviousMau(app);
-  const delta = currentMau != null && previousMau != null ? currentMau - previousMau : 0;
+  const delta = getMauDelta(app);
   let deltaElement = cell.querySelector(".ohos2026-monthly-active-delta");
 
   if (delta > 0) {

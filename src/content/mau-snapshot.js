@@ -34,11 +34,16 @@ function saveCurrentMauSnapshot() {
   });
 }
 
+function startMauComparison() {
+  previousMauByApp = lastSavedMauByApp;
+  comparisonMauByApp = lastSavedMauByApp;
+}
+
 function loadPreviousMauSnapshot() {
   chrome.storage.local.get(MAU_SNAPSHOT_KEY, (result) => {
     const snapshot = result?.[MAU_SNAPSHOT_KEY] || {};
     lastSavedMauByApp = normalizeStoredMauMap(snapshot.apps, getSnapshotMonthKey(snapshot.capturedAt));
-    previousMauByApp = lastSavedMauByApp;
+    startMauComparison();
     mauSnapshotLoaded = true;
     renderMonthlyActiveColumn();
 
@@ -51,6 +56,6 @@ function loadPreviousMauSnapshot() {
 
 function prepareMauComparison() {
   if (mauSnapshotLoaded) {
-    previousMauByApp = lastSavedMauByApp;
+    startMauComparison();
   }
 }

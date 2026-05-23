@@ -93,6 +93,7 @@ var state = {
 };
 var renderScheduled = false;
 var previousMauByApp = {};
+var comparisonMauByApp = {};
 var lastSavedMauByApp = {};
 var mauSnapshotLoaded = false;
 var pendingMauSnapshotSave = false;

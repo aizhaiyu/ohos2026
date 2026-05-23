@@ -10,6 +10,17 @@ function persist() {
   window.dispatchEvent(new CustomEvent(DATA_UPDATED_EVENT, { detail: state }));
 }
 
+function persistStateOnly() {
+  state.rewardApps = mergeRewardApps([], state.rewardApps);
+  state.lastUpdated = new Date().toISOString();
+  state.url = location.href;
+  renderMonthlyActiveColumn();
+  captureTables();
+
+  chrome.storage.local.set({ [STORAGE_KEY]: state });
+  window.dispatchEvent(new CustomEvent(DATA_UPDATED_EVENT, { detail: state }));
+}
+
 function handleGwResponse(messageEvent) {
   if (messageEvent.source !== window || messageEvent.data?.source !== MESSAGE_SOURCE) {
     return;
@@ -45,7 +56,9 @@ function handleGwResponse(messageEvent) {
     }
 
     const apps = normalizeRewardApps(result);
-    prepareMauComparison();
+    if (page === 1) {
+      prepareMauComparison();
+    }
     if (pageSize >= 100) {
       state.rewardApps = page === 1 && pending ? apps : mergeRewardApps(state.rewardApps, apps);
     } else {
@@ -117,6 +130,7 @@ function getRewardTotalFromResult(result) {
 
 function fetchAllRewardApps() {
   const clientRequestId = `fetch-all-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+  prepareMauComparison();
 
   return new Promise((resolve) => {
     const timeoutId = window.setTimeout(() => {
