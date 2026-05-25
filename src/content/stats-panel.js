@@ -567,6 +567,15 @@ function createPrivacyToggle() {
   return label;
 }
 
+function getExtensionVersionText() {
+  try {
+    const version = chrome?.runtime?.getManifest?.().version;
+    return version ? `v${version}` : "";
+  } catch (_error) {
+    return "";
+  }
+}
+
 function renderStatsPanel() {
   const drawer = document.querySelector("#ohos2026-stats-root .ohos2026-stats-drawer");
   if (!drawer) {
@@ -580,7 +589,7 @@ function renderStatsPanel() {
   titleWrap.appendChild(createStatsElement("div", "ohos2026-stats-title", "激励统计"));
 
   const headerActions = createStatsElement("div", "ohos2026-stats-header-actions");
-  const versionBadge = createStatsElement("span", "ohos2026-stats-version", `v${chrome.runtime.getManifest().version}`);
+  const versionBadge = createStatsElement("span", "ohos2026-stats-version", getExtensionVersionText());
 
   const sourceLink = document.createElement("a");
   sourceLink.className = "ohos2026-stats-source-link";

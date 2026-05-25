@@ -3,7 +3,7 @@
   "name": "2026HarmonyOS开发者激励数据看板增强",
   "author": "黎明时候",
   "description": "2026 鸿蒙开发者激励计划达标数据看板分析插件",
-  "version": "0.13",
+  "version": "0.14",
   "icons": {
     "16": "assets/icons/icon-16.png",
     "32": "assets/icons/icon-32.png",

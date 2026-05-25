@@ -375,6 +375,13 @@ function getAppMauMonthKey(app) {
   return getMauMonthKey(app?.latestMauMonth);
 }
 
+function getLocalDateKey(date = new Date()) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
 function normalizeStoredMauRecord(record, fallbackMonthKey = "") {
   if (record == null || record === "") {
     return null;
@@ -384,17 +391,19 @@ function normalizeStoredMauRecord(record, fallbackMonthKey = "") {
     const mau = Number(record.mau);
     const monthKey = getMauMonthKey(record.monthKey || record.month || fallbackMonthKey);
     const delta = Number(record.delta);
+    const deltaDate = typeof record.deltaDate === "string" ? record.deltaDate : "";
     return Number.isFinite(mau)
       ? {
           mau,
           monthKey,
-          delta: Number.isFinite(delta) && delta > 0 ? delta : 0
+          delta: Number.isFinite(delta) && delta > 0 ? delta : 0,
+          deltaDate
         }
       : null;
   }
 
   const mau = Number(record);
-  return Number.isFinite(mau) ? { mau, monthKey: getMauMonthKey(fallbackMonthKey), delta: 0 } : null;
+  return Number.isFinite(mau) ? { mau, monthKey: getMauMonthKey(fallbackMonthKey), delta: 0, deltaDate: "" } : null;
 }
 
 function normalizeStoredMauMap(apps, fallbackMonthKey = "") {
@@ -438,7 +447,7 @@ function getMauDelta(app) {
     return currentMau - previousRecord.mau;
   }
 
-  if (currentMau === previousRecord.mau && previousRecord.delta > 0) {
+  if (currentMau === previousRecord.mau && previousRecord.delta > 0 && previousRecord.deltaDate === getLocalDateKey()) {
     return previousRecord.delta;
   }
 
@@ -452,9 +461,11 @@ function getCurrentMauRecord(app) {
     return null;
   }
 
+  const delta = getMauDelta(app);
   return {
     mau: currentMau,
     monthKey: currentMonthKey,
-    delta: getMauDelta(app)
+    delta,
+    deltaDate: delta > 0 ? getLocalDateKey() : ""
   };
 }
